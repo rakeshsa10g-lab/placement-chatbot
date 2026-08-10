@@ -21,7 +21,10 @@ import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// "gemini-flash-latest" is an alias that always points at Google's current Flash
+// model. Pinning a version (e.g. gemini-2.5-flash) eventually breaks: retired
+// models return 404 "no longer available to new users" for newly-created keys.
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const LLAMA_MODEL = process.env.LLAMA_MODEL || "llama-3.3-70b-versatile";
 const LLAMA_BASE_URL = (process.env.LLAMA_BASE_URL || "https://api.groq.com/openai/v1").replace(/\/+$/, "");
 const INSTITUTION = process.env.INSTITUTION_NAME || "our institute";
@@ -153,7 +156,9 @@ async function streamGemini(messages, res) {
         role: m.role === "assistant" ? "model" : "user",
         parts: [{ text: m.content }],
       })),
-      generationConfig: { maxOutputTokens: 1024 },
+      // Generous ceiling: newer Gemini models spend part of the budget on internal
+      // reasoning, so a tight limit can truncate the visible answer.
+      generationConfig: { maxOutputTokens: 2048 },
     }),
   });
 
