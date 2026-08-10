@@ -27,6 +27,7 @@
   var CONFIG = {
     api: (script && script.dataset.api) || "/api/chat",
     faq: (script && script.dataset.faq) || "/faq.json",
+    routing: (script && script.dataset.routing) || "/routing.json",
     title: (script && script.dataset.title) || "Placement & Internship Help",
     escalateUrl: (script && script.dataset.escalateUrl) || "",
     greeting:
@@ -67,6 +68,16 @@
     ".pbot-escalate{display:inline-block;margin:2px 0 12px;padding:8px 14px;background:#fff;border:1.5px solid #dc2626;color:#dc2626;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer}",
     ".pbot-escalate:hover{background:#fef2f2}",
     ".pbot-retry{display:block;margin:-4px 0 12px;background:none;border:none;color:#1d4ed8;font-size:12px;cursor:pointer;text-decoration:underline;padding:0 2px}",
+    // --- escalation routing card ---
+    ".pbot-route{margin:0 0 12px;padding:11px 13px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:13px;color:#7c2d12}",
+    ".pbot-route p{margin:0 0 8px;line-height:1.45}",
+    ".pbot-route-row{display:flex;gap:6px}",
+    ".pbot-route input{flex:1;border:1px solid #fdba74;border-radius:6px;padding:7px 9px;font-size:13px;font-family:inherit;text-transform:uppercase;outline:none;min-width:0}",
+    ".pbot-route input:focus{border-color:#ea580c}",
+    ".pbot-route button{background:#ea580c;color:#fff;border:none;border-radius:6px;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}",
+    ".pbot-route-result{margin-top:9px;padding-top:9px;border-top:1px dashed #fed7aa}",
+    ".pbot-route-dept{font-weight:700;display:block;margin-bottom:7px}",
+    ".pbot-route-err{color:#b91c1c;margin-top:7px;font-size:12.5px}",
     "#pbot-form{display:flex;gap:8px;padding:10px;border-top:1px solid #e5e7eb;background:#fff}",
     "#pbot-input{flex:1;border:1px solid #d1d5db;border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit;resize:none;max-height:96px;outline:none}",
     "#pbot-input:focus{border-color:#1d4ed8}",
@@ -230,6 +241,66 @@
     } catch (e) { /* ignore */ }
   }
 
+  // ================= escalation routing by roll number =================
+
+  var ROUTING = null; // { default: {...}, departments: { CH: {...} } }
+
+  function loadRouting() {
+    try {
+      fetch(CONFIG.routing, { cache: "force-cache" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          // Only switch on roll-number routing once at least one real destination
+          // exists — an unfilled template must not replace the working fallback link.
+          if (!j || !j.departments) return;
+          var usable = !!(j.default && (j.default.email || j.default.form));
+          if (!usable) {
+            for (var code in j.departments) {
+              var d = j.departments[code];
+              if (d && (d.email || d.form)) { usable = true; break; }
+            }
+          }
+          if (usable) ROUTING = j;
+        })
+        .catch(function () { /* fall back to the single escalate URL */ });
+    } catch (e) { /* ignore */ }
+  }
+
+  /** Roll numbers look like CH23B043 — the first two letters are the department. */
+  function parseDeptCode(roll) {
+    var m = String(roll).trim().toUpperCase().match(/^([A-Z]{2})\s*\d{2}/);
+    return m ? m[1] : null;
+  }
+
+  function routeFor(roll) {
+    if (!ROUTING) return null;
+    var code = parseDeptCode(roll);
+    var dept = code && ROUTING.departments ? ROUTING.departments[code] : null;
+    var fallback = ROUTING.default || null;
+    var chosen = (dept && (dept.email || dept.form)) ? dept : fallback;
+    if (!chosen || (!chosen.email && !chosen.form)) return null;
+    return {
+      code: code,
+      name: chosen.name || "Placement Office",
+      email: chosen.email || "",
+      form: chosen.form || "",
+      matched: !!(dept && (dept.email || dept.form)),
+    };
+  }
+
+  /** Build a mailto: link with the question and roll number already filled in. */
+  function buildMailto(route, roll, question) {
+    var subject = "Placement query [" + String(roll).toUpperCase() + "]";
+    var body =
+      "Roll number: " + String(roll).toUpperCase() + "\n" +
+      "Department: " + route.name + "\n\n" +
+      "Question:\n" + question + "\n\n" +
+      "(Sent from the placement assistant — the documents did not cover this question.)";
+    return "mailto:" + route.email +
+      "?subject=" + encodeURIComponent(subject) +
+      "&body=" + encodeURIComponent(body);
+  }
+
   // ================= state =================
 
   function loadHistory() {
@@ -305,11 +376,73 @@
       return div;
     }
 
-    function addEscalate() {
+    /**
+     * Escalation. If routing.json is configured we ask for a roll number and send
+     * the student to their own department's coordinator; otherwise we fall back to
+     * the single escalate URL.
+     */
+    function addEscalate(question) {
+      if (ROUTING) {
+        log.appendChild(buildRouteCard(question || ""));
+        log.scrollTop = log.scrollHeight;
+        return;
+      }
       if (!CONFIG.escalateUrl) return;
       var a = el("a", { class: "pbot-escalate", href: CONFIG.escalateUrl, target: "_blank", rel: "noopener" }, "📩 Contact a coordinator");
       log.appendChild(a);
       log.scrollTop = log.scrollHeight;
+    }
+
+    function buildRouteCard(question) {
+      var card = el("div", { class: "pbot-route" });
+      card.appendChild(el("p", {}, "I couldn't answer that from the official documents. Enter your roll number and I'll point you to the right coordinator."));
+
+      var row = el("div", { class: "pbot-route-row" });
+      var input = el("input", { type: "text", placeholder: "e.g. CH23B043", "aria-label": "Roll number", maxlength: "20" });
+      var go = el("button", { type: "button" }, "Find");
+      row.appendChild(input);
+      row.appendChild(go);
+      card.appendChild(row);
+
+      var result = el("div", {});
+      card.appendChild(result);
+
+      function submit() {
+        result.textContent = "";
+        var roll = input.value.trim();
+        if (!roll) return;
+
+        var route = routeFor(roll);
+        if (!route) {
+          var err = el("div", { class: "pbot-route-err" },
+            "Routing isn't configured yet. Please contact the placement office directly.");
+          result.appendChild(err);
+          return;
+        }
+
+        var box = el("div", { class: "pbot-route-result" });
+        var label = el("span", { class: "pbot-route-dept" },
+          route.matched
+            ? "→ " + route.name
+            : "→ " + route.name + " (no department match for that roll number)");
+        box.appendChild(label);
+
+        var link;
+        if (route.form) {
+          link = el("a", { class: "pbot-escalate", href: route.form, target: "_blank", rel: "noopener" }, "📩 Open the escalation form");
+        } else {
+          link = el("a", { class: "pbot-escalate", href: buildMailto(route, roll, question) }, "📩 Email the coordinator");
+        }
+        box.appendChild(link);
+        result.appendChild(box);
+      }
+
+      go.addEventListener("click", submit);
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); submit(); }
+      });
+
+      return card;
     }
 
     /** Offered under an instant FAQ answer, so a student is never stuck with it. */
@@ -330,7 +463,7 @@
       history.forEach(function (m) {
         if (m.role === "user") { addUserMsg(m.content); return; }
         addBotMsg(m.content);
-        if (m.escalate) addEscalate();
+        if (m.escalate) addEscalate(m.forQuestion || "");
       });
     }
 
@@ -399,9 +532,9 @@
         var escalate = full.indexOf(ESCALATE_TOKEN) !== -1;
         var clean = full.split(ESCALATE_TOKEN).join("").trim() || "Sorry, I couldn't produce an answer. Please try again.";
         renderMarkdown(botDiv, clean);
-        if (escalate) addEscalate();
+        if (escalate) addEscalate(question);
 
-        history.push({ role: "assistant", content: clean, escalate: escalate });
+        history.push({ role: "assistant", content: clean, escalate: escalate, forQuestion: escalate ? question : undefined });
         saveHistory(history);
       } catch (err) {
         botDiv.classList.remove("pbot-typing");
@@ -442,6 +575,7 @@
 
     renderAll();
     loadFaq();
+    loadRouting();
   }
 
   if (document.readyState === "loading") {

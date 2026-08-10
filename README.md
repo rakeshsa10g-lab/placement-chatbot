@@ -318,6 +318,54 @@ Vercel's 100 GB monthly bandwidth.
   `cache_read` usage in the Anthropic console — if it's near zero, caching broke
   (usually means the knowledge file changes on every request).
 
+## Routing escalations by roll number
+
+When the bot can't answer, it can send the student to **their own department's**
+coordinator instead of one shared inbox. Roll numbers are parsed as
+`<2-letter department><2-digit year><programme><serial>` — so `CH23B043` → `CH` →
+Chemical Engineering.
+
+**What the student sees:** the bot says it can't answer, then shows a small card:
+*"Enter your roll number and I'll point you to the right coordinator."* They type
+`CH23B043`, and get a button that opens an email addressed to the Chemical
+Engineering coordinator with the subject, roll number, department, and their original
+question **already filled in**. They just press send.
+
+### Setting it up
+
+Edit `public/routing.json`:
+
+```jsonc
+{
+  "default":     { "name": "Placement & Internship Cell", "email": "placement@yourinstitute.edu", "form": "" },
+  "departments": {
+    "CH": { "name": "Chemical Engineering", "email": "ch.placement@yourinstitute.edu", "form": "" },
+    "CS": { "name": "Computer Science",     "email": "",  "form": "https://forms.gle/XXXX" }
+  }
+}
+```
+
+- Fill in `email` for each department you want routed. Leave the rest blank.
+- Set `form` instead if a department prefers a Google Form (`form` wins over `email`).
+- **Always set `default`** — it catches unknown codes, PhD/exchange roll formats, and typos.
+- Then `git add -A && git commit -m "routing" && git push`.
+
+### Fallback behaviour (all verified)
+
+| Student enters | Goes to |
+|---|---|
+| `CH23B043` (configured department) | Chemical Engineering coordinator |
+| `ME22B105` (department left blank) | the `default` office |
+| `XX23B001` (unknown code) | the `default` office |
+| `hello` (not a roll number) | the `default` office |
+| — routing.json not filled in at all — | the single `data-escalate-url` link, as before |
+
+Nothing breaks if you skip this: until at least one email or form is filled in, the
+widget keeps using the plain "Contact a coordinator" link.
+
+> **Privacy note:** the roll number is used only to build the email — it is typed in
+> the browser, never sent to the server, and never stored.
+
 ## Escalation flow (what coordinators see)
 
 The system prompt instructs Claude to append `[[ESCALATE]]` whenever a question

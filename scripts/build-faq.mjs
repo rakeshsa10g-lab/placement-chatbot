@@ -32,7 +32,9 @@ try {
 } catch { /* env may come from the shell */ }
 
 const HOW_MANY = Number(process.argv[2]) || 60;
-const DELAY_MS = Number(process.env.FAQ_DELAY_MS || 4000); // stay under free-tier rate limits
+// Free tiers are strict — Gemini's current flash model allows only ~5 requests/minute.
+// 13s between calls keeps us under that. Raise FAQ_DELAY_MS if you still see 429s.
+const DELAY_MS = Number(process.env.FAQ_DELAY_MS || 13000);
 const INSTITUTION = process.env.INSTITUTION_NAME || "our institute";
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
@@ -63,17 +65,65 @@ Rules:
 3. If the documents do not answer the question, reply with exactly: [[ESCALATE]]
 4. Be concise and student-friendly. Use markdown: **bold** for key figures, bullet lists for multiple points.`;
 
+// Schema for the question-list step. Asking the provider to *guarantee* valid JSON
+// is far more reliable than parsing whatever prose the model feels like emitting.
+const QUESTION_SCHEMA = {
+  type: "ARRAY",
+  items: {
+    type: "OBJECT",
+    properties: {
+      q: { type: "STRING" },
+      keywords: { type: "ARRAY", items: { type: "STRING" } },
+    },
+    required: ["q", "keywords"],
+  },
+};
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Wraps completeOnce with automatic retry when the free tier says "slow down".
+ * Providers tell us how long to wait ("Please retry in 1.39s") — we honour that,
+ * with exponential backoff as a floor. Without this, a long build loses a large
+ * fraction of its questions to 429s.
+ */
+async function complete(system, user, maxTokens = 1200, wantJson = false, attempts = 4) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await completeOnce(system, user, maxTokens, wantJson);
+    } catch (err) {
+      lastErr = err;
+      const msg = String(err.message || "");
+      const isRateLimit = msg.startsWith("429") || /quota|rate limit/i.test(msg);
+      if (!isRateLimit || i === attempts - 1) throw err;
+      const hinted = msg.match(/retry in ([\d.]+)s/i);
+      const waitMs = hinted
+        ? Math.ceil(parseFloat(hinted[1]) * 1000) + 1500
+        : Math.min(60000, 8000 * 2 ** i);
+      process.stdout.write(` [rate limited, waiting ${Math.round(waitMs / 1000)}s] `);
+      await sleep(waitMs);
+    }
+  }
+  throw lastErr;
+}
+
 /** One non-streaming completion, whichever provider is configured. */
-async function complete(system, user, maxTokens = 1200) {
+async function completeOnce(system, user, maxTokens = 1200, wantJson = false) {
   if (PROVIDER === "gemini") {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+    const generationConfig = { maxOutputTokens: maxTokens };
+    if (wantJson) {
+      generationConfig.responseMimeType = "application/json";
+      generationConfig.responseSchema = QUESTION_SCHEMA;
+    }
     const r = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: system }] },
         contents: [{ role: "user", parts: [{ text: user }] }],
-        generationConfig: { maxOutputTokens: maxTokens },
+        generationConfig,
       }),
     });
     const j = await r.json();
@@ -82,14 +132,16 @@ async function complete(system, user, maxTokens = 1200) {
   }
 
   if (PROVIDER === "llama") {
+    const body = {
+      model: LLAMA_MODEL,
+      max_tokens: maxTokens,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    };
+    if (wantJson) body.response_format = { type: "json_object" };
     const r = await fetch(`${LLAMA_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.LLAMA_API_KEY}` },
-      body: JSON.stringify({
-        model: LLAMA_MODEL,
-        max_tokens: maxTokens,
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
-      }),
+      body: JSON.stringify(body),
     });
     const j = await r.json();
     if (!r.ok) throw new Error(`${r.status} ${j.error?.message || ""}`);
@@ -108,16 +160,87 @@ async function complete(system, user, maxTokens = 1200) {
   return msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-/** Pull a JSON array out of a model reply that may be wrapped in prose or fences. */
+/**
+ * Pull a JSON array out of a model reply that may be wrapped in prose or fences.
+ * Falls back to salvaging whole `{...}` objects if the array as a whole is malformed,
+ * so one bad entry doesn't cost us the entire batch.
+ */
 function extractJsonArray(text) {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const body = fenced ? fenced[1] : text;
+  let body = fenced ? fenced[1] : text;
+
+  // Some providers wrap the array in an object, e.g. {"questions": [...]}
   const start = body.indexOf("[");
   const end = body.lastIndexOf("]");
-  if (start === -1 || end === -1) throw new Error("no JSON array found in model reply");
-  return JSON.parse(body.slice(start, end + 1));
+  if (start !== -1 && end > start) {
+    const slice = body.slice(start, end + 1);
+    try {
+      return JSON.parse(slice);
+    } catch {
+      body = slice; // fall through to salvage
+    }
+  }
+
+  // Salvage: collect each individually-parseable {...} object.
+  const salvaged = [];
+  const objects = body.match(/\{[^{}]*\}/g) || [];
+  for (const o of objects) {
+    try {
+      const parsed = JSON.parse(o);
+      if (parsed && typeof parsed.q === "string") salvaged.push(parsed);
+    } catch { /* skip this one */ }
+  }
+  if (salvaged.length) return salvaged;
+  throw new Error("no usable JSON found in model reply");
+}
+
+/** Generate questions in small batches — more reliable than one huge request. */
+async function generateQuestions(knowledge, target) {
+  const BATCH = 25;
+  const seen = new Set();
+  const all = [];
+  const topicHints = [
+    "eligibility, CGPA cutoffs, and who can register",
+    "timelines, dates, slots and deadlines",
+    "resume rules, verification and proof documents",
+    "offer policies, PPOs, deregistration and upgrades",
+    "credits, penalties, blacklisting and code of conduct",
+  ];
+
+  for (let round = 0; all.length < target && round < 8; round++) {
+    const hint = topicHints[round % topicHints.length];
+    const want = Math.min(BATCH, target - all.length);
+    const prompt =
+      `Below are the official placement and internship documents for ${INSTITUTION}.\n\n` +
+      `${knowledge}\n\n---\n\n` +
+      `List ${want} questions students are most likely to ask, focusing on ${hint}. ` +
+      `Every question must be answerable from the documents above.\n` +
+      `Each item needs: "q" (the question as a student would type it) and ` +
+      `"keywords" (4-8 distinctive lowercase single words a student would use — ` +
+      `never generic words like "what", "the", "is").\n` +
+      (all.length ? `Do NOT repeat these already-collected questions:\n${all.map((x) => "- " + x.q).join("\n")}\n` : "");
+
+    try {
+      const raw = await complete("You output only valid JSON matching the requested shape.", prompt, 16000, true);
+      const batch = extractJsonArray(raw);
+      let added = 0;
+      for (const item of batch) {
+        if (!item || typeof item.q !== "string" || !item.q.trim()) continue;
+        const norm = item.q.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+        if (seen.has(norm)) continue;
+        seen.add(norm);
+        all.push(item);
+        added++;
+        if (all.length >= target) break;
+      }
+      console.log(`  batch ${round + 1}: +${added} questions (total ${all.length})`);
+      if (added === 0) break; // model has run dry
+    } catch (err) {
+      console.log(`  batch ${round + 1}: failed (${err.message}) — continuing`);
+    }
+    if (all.length < target) await sleep(DELAY_MS);
+  }
+  return all;
 }
 
 async function main() {
@@ -131,33 +254,32 @@ async function main() {
   console.log(`Generating the ${HOW_MANY} most likely student questions...\n`);
 
   // ---- 1. ask the model which questions students will actually ask ----
-  const qPrompt =
-    `Below are the official placement and internship documents for ${INSTITUTION}.\n\n` +
-    `${knowledge}\n\n---\n\n` +
-    `List the ${HOW_MANY} questions students are MOST likely to ask about these documents. ` +
-    `Cover eligibility, deadlines, timelines, resume rules, offer policies, credits, penalties, and procedures. ` +
-    `Every question must be answerable from the documents above.\n\n` +
-    `Reply with ONLY a JSON array, no prose, in this exact shape:\n` +
-    `[{"q":"the question as a student would type it","keywords":["4","to","8","distinctive","lowercase","words"]}]\n` +
-    `Keywords must be single words that appear in a student's phrasing of that question ` +
-    `(not generic words like "what" or "the").`;
-
-  let questions;
-  try {
-    questions = extractJsonArray(await complete("You output only valid JSON arrays.", qPrompt, 8000));
-  } catch (err) {
-    console.error("Could not generate the question list:", err.message);
+  const questions = await generateQuestions(knowledge, HOW_MANY);
+  if (!questions.length) {
+    console.error("Could not generate any questions. Check your API key and try again.");
     process.exit(1);
   }
-
-  questions = questions
-    .filter((x) => x && typeof x.q === "string" && x.q.trim())
-    .slice(0, HOW_MANY);
   console.log(`Got ${questions.length} questions. Answering each (about ${Math.ceil((questions.length * DELAY_MS) / 60000)} min)...\n`);
 
   // ---- 2. answer each one, grounded in the documents ----
+  const outPath = path.resolve("public", "faq.json");
   const entries = [];
   let skipped = 0;
+
+  // Save progress periodically — a 20-minute build should never lose everything
+  // to one bad network moment.
+  const save = async () => {
+    await fs.writeFile(
+      outPath,
+      JSON.stringify(
+        { generated: new Date().toISOString(), institution: INSTITUTION, count: entries.length, entries },
+        null,
+        1
+      ),
+      "utf8"
+    );
+  };
+
   for (let i = 0; i < questions.length; i++) {
     const { q, keywords } = questions[i];
     const label = `[${String(i + 1).padStart(3)}/${questions.length}] ${q.slice(0, 58)}`;
@@ -178,23 +300,17 @@ async function main() {
           a: answer,
         });
         console.log(`${label} — ok`);
+        if (entries.length % 10 === 0) await save();
       }
     } catch (err) {
       skipped++;
-      console.log(`${label} — FAILED: ${err.message}`);
+      console.log(`${label} — FAILED: ${String(err.message).slice(0, 90)}`);
     }
     if (i < questions.length - 1) await sleep(DELAY_MS);
   }
 
   // ---- 3. write the static file the widget downloads ----
-  const out = {
-    generated: new Date().toISOString(),
-    institution: INSTITUTION,
-    count: entries.length,
-    entries,
-  };
-  const outPath = path.resolve("public", "faq.json");
-  await fs.writeFile(outPath, JSON.stringify(out, null, 1), "utf8");
+  await save();
 
   const kb = (await fs.stat(outPath)).size / 1024;
   console.log(`\nWrote ${outPath}`);
