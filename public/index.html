@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Placement Chatbot — Test Page</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 60px auto; padding: 0 20px; color: #1f2937; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    pre { background: #f3f4f6; padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Placement Chatbot — test page</h1>
+  <p>
+    This page simulates your institute website. The chat bubble in the bottom-right corner
+    is the embedded assistant. Click it and ask a question about your uploaded documents.
+  </p>
+  <p>To embed the same widget on your real website, paste this before <code>&lt;/body&gt;</code>:</p>
+  <pre>&lt;script src="https://YOUR-APP.vercel.app/widget.js" defer
+        data-api="https://YOUR-APP.vercel.app/api/chat"
+        data-title="Placement &amp; Internship Help"
+        data-escalate-url="https://forms.gle/YOUR-FORM-ID"&gt;&lt;/script&gt;</pre>
+
+  <!-- The widget. On this test page it uses relative URLs, so no data-api needed.
+       Replace the escalate URL with your real Google Form / coordinator email. -->
+  <script src="/widget.js" defer
+          data-title="Placement & Internship Help"
+          data-escalate-url="mailto:placement@example.edu"></script>
+</body>
+</html>

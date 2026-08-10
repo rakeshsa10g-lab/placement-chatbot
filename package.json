@@ -1,0 +1,19 @@
+{
+  "name": "placement-chatbot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Embeddable Claude chatbot that answers student questions about internships, placements, and policies from uploaded institutional documents.",
+  "scripts": {
+    "ingest": "node scripts/ingest.mjs",
+    "dev": "node scripts/dev-server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.60.0",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1"
+  }
+}
