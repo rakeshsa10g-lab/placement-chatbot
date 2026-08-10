@@ -6,6 +6,7 @@
   "description": "Embeddable Claude chatbot that answers student questions about internships, placements, and policies from uploaded institutional documents.",
   "scripts": {
     "ingest": "node scripts/ingest.mjs",
+    "build-faq": "node scripts/build-faq.mjs",
     "dev": "node scripts/dev-server.mjs"
   },
   "engines": {

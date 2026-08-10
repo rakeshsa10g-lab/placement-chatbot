@@ -209,6 +209,38 @@ async function streamLlama(messages, res) {
   });
 }
 
+// ---- answer cache -----------------------------------------------------------
+// During a spike, many students ask the same thing within seconds. Caching the
+// answer to a single-question conversation collapses those into ONE AI call.
+// Only opening questions are cached — follow-ups depend on conversation context.
+const CACHE_TTL_MS = 15 * 60 * 1000;
+const CACHE_MAX = 500;
+const answerCache = new Map(); // normalizedQuestion -> { text, at }
+
+function cacheKey(messages) {
+  if (messages.length !== 1) return null; // not an opening question
+  return messages[0].content.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function cacheGet(key) {
+  if (!key) return null;
+  const hit = answerCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > CACHE_TTL_MS) {
+    answerCache.delete(key);
+    return null;
+  }
+  return hit.text;
+}
+
+function cacheSet(key, text) {
+  if (!key || !text || text.length < 20) return;
+  if (answerCache.size >= CACHE_MAX) {
+    answerCache.delete(answerCache.keys().next().value); // drop oldest
+  }
+  answerCache.set(key, { text, at: Date.now() });
+}
+
 // ---- naive per-instance rate limiter (good enough for a free deployment;
 //      see README "Scaling" for the durable option) ----
 const hits = new Map();
@@ -276,14 +308,31 @@ export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Accel-Buffering", "no");
 
+  // Serve an identical recent question straight from memory — no AI call.
+  const key = cacheKey(messages);
+  const cached = cacheGet(key);
+  if (cached) {
+    res.setHeader("X-Cache", "HIT");
+    return res.end(cached);
+  }
+
+  // Capture what we stream so it can be cached for the next student.
+  let captured = "";
+  const write = (chunk) => {
+    captured += chunk;
+    res.write(chunk);
+  };
+  const proxyRes = { write, setHeader: res.setHeader.bind(res) };
+
   try {
     if (provider === "gemini") {
-      await streamGemini(messages, res);
+      await streamGemini(messages, proxyRes);
     } else if (provider === "llama") {
-      await streamLlama(messages, res);
+      await streamLlama(messages, proxyRes);
     } else {
-      await streamAnthropic(messages, res);
+      await streamAnthropic(messages, proxyRes);
     }
+    cacheSet(key, captured);
     res.end();
   } catch (err) {
     console.error(`${provider} API error:`, err?.status, err?.message);

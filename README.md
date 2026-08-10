@@ -108,9 +108,12 @@ Paste before `</body>` on any page of your site:
 ```html
 <script src="https://YOUR-APP.vercel.app/widget.js" defer
         data-api="https://YOUR-APP.vercel.app/api/chat"
+        data-faq="https://YOUR-APP.vercel.app/faq.json"
         data-title="Placement & Internship Help"
         data-escalate-url="https://forms.gle/YOUR-FORM-ID"></script>
 ```
+
+`data-faq` is what enables instant, zero-cost answers to common questions — don't omit it.
 
 - `data-escalate-url` — a Google Form (or `mailto:coordinator@...`) shown as a
   **"Contact a coordinator"** button whenever the bot flags a question for human
@@ -228,6 +231,73 @@ cost for a ~30K-token knowledge base (≈50 pages of policies) and a ~400-token 
 - Opus 4.8 is the default because policy questions punish wrong answers; if budget
   is the constraint, Haiku 4.5 is still very good at grounded Q&A over documents —
   test both on your real docs and decide.
+
+## Surviving traffic spikes (200+ questions/minute) — free
+
+**The honest constraint first:** no free AI tier on earth serves 200 *unique* questions
+per minute. Free tiers allow roughly 10–15 AI calls/minute. If every one of those 200
+questions were genuinely different, this would cost real money — several ₹thousand per
+peak hour on any paid model.
+
+**But placement questions are massively repetitive.** During results week, hundreds of
+students ask the same ~40 things. This project exploits that with three layers, so the
+number of *actual AI calls* stays tiny:
+
+```
+Student asks a question
+   │
+   ├─ Layer 1: INSTANT FAQ (in the browser)      ← ~80-90% of questions
+   │    matched against faq.json, downloaded once per student.
+   │    Zero server calls. Zero AI calls. Instant. Infinitely scalable.
+   │
+   ├─ Layer 2: SERVER CACHE (in the function)    ← most of the remainder
+   │    identical question asked in the last 15 min → replayed from memory.
+   │    Measured: 4,698ms → 5ms, and no AI call.
+   │
+   └─ Layer 3: LIVE AI CALL                      ← only genuinely novel questions
+        rate-limited to 20/min per student; on overload the student gets a
+        "busy, try again" message plus the coordinator escalation form.
+```
+
+### Setting it up (do this before launch)
+
+```bash
+npm run ingest        # rebuild knowledge from docs/
+npm run build-faq     # pre-answer the ~60 most likely questions  (takes a few minutes)
+git add -A && git commit -m "update knowledge + FAQ" && git push
+```
+
+`npm run build-faq -- 150` generates more entries for wider coverage — worth it before
+a peak period. Each entry is answered from your documents with the same citation rules,
+and any question the documents *can't* answer is dropped rather than guessed at.
+
+**Re-run both commands whenever documents change.** A stale FAQ is the one real risk of
+this design: it will happily serve last semester's deadline. Rebuilding takes minutes and
+costs nothing.
+
+### What the layers actually buy you
+
+| Layer | Cost per question | Capacity | Latency |
+|---|---|---|---|
+| Instant FAQ | ₹0, no network | unlimited | instant |
+| Server cache | ₹0, no AI call | ~unlimited | ~5 ms |
+| Live AI call | 1 free-tier request | ~10–15/min | 3–5 s |
+
+At 200 questions/minute with a good FAQ, roughly 20–40 reach the server and only a
+handful become real AI calls — inside the free tier. The `faq.json` file is downloaded
+**once per student** (browser + CDN cached), so 1,200 students cost about 120 MB of
+Vercel's 100 GB monthly bandwidth.
+
+### If you still saturate the free tier
+
+1. **Grow the FAQ** — `npm run build-faq -- 200`. This is the highest-leverage lever;
+   every added entry permanently removes load.
+2. **Publish the FAQ as a normal web page too.** Many students will read it and never
+   open the chat.
+3. **Add Groq as a second free provider** (see the Llama table above) and switch
+   `LLM_PROVIDER` during peak weeks — a completely separate free quota.
+4. **Spend a little during peak week only.** `claude-haiku-4-5` is ~$5.50 per 1,000
+   questions; a peak week might cost a few dollars. Set a spend limit in the console.
 
 ## Scaling to ~1,200 users & peak periods
 
