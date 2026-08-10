@@ -277,4 +277,5 @@ doubles the moving parts — don't do it before you need it.
 | Widget doesn't appear on your site | Check the script `src` URL; check browser console for CORS — set `ALLOWED_ORIGIN` to your site's origin (scheme + domain, no path) |
 | 429 / "very busy" during peaks | Anthropic rate tier too low — deposit to reach Tier 2 |
 | PDF ingested but bot knows nothing from it | Scanned/image PDF — OCR it or re-export as text |
+| Logs show `404 … model … no longer available to new users` | You pinned a retired model. Set `GEMINI_MODEL=gemini-flash-latest` (an alias that always tracks the current model), or delete the `GEMINI_MODEL` variable entirely to use the built-in default. Redeploy after changing it. |
 | Answers are wrong | Check the source document actually says what you think; the bot cites the section it used — verify that passage |
