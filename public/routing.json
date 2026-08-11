@@ -22,18 +22,15 @@
     "Until 'form.actionUrl' is filled in, the widget falls back to the plain",
     "'data-escalate-url' link, so nothing breaks in the meantime."
   ],
-
   "form": {
-    "actionUrl": "",
+    "actionUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdRGndFcYY4WquZ98pVoQndZv97nh_IMXdgVhF_2PC9rGCX3Q/formResponse",
     "fields": {
-      "rollNumber": "",
-      "question": "",
-      "department": ""
+      "rollNumber": "entry.1810264281",
+      "question": "entry.222477342",
+      "department": "entry.819042995"
     }
   },
-
   "default": "Placement & Internship Cell",
-
   "departments": {
     "AE": "Aerospace Engineering",
     "AM": "Applied Mechanics",
