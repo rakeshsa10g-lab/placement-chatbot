@@ -86,21 +86,32 @@ server.listen(PORT, () => {
   const forced = (process.env.LLM_PROVIDER || "").toLowerCase();
   const provider = ["anthropic", "gemini", "llama"].includes(forced)
     ? forced
-    : process.env.ANTHROPIC_API_KEY
-      ? "anthropic"
-      : process.env.GEMINI_API_KEY
-        ? "gemini"
-        : process.env.LLAMA_API_KEY
-          ? "llama"
-          : null;
+    : null;
+
+  const available = [];
+  if (process.env.GEMINI_API_KEY) available.push("gemini");
+  if (process.env.LLAMA_API_KEY) available.push("llama");
+  if (process.env.ANTHROPIC_API_KEY) available.push("anthropic");
+  const preferred = (process.env.LLM_PROVIDER || "")
+    .toLowerCase().split(",").map((s) => s.trim())
+    .filter((p) => available.includes(p));
+  const chain = preferred.slice();
+  for (const p of available) if (!chain.includes(p)) chain.push(p);
+
   const modelFor = {
     anthropic: process.env.ANTHROPIC_MODEL || "claude-opus-4-8",
-    gemini: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    gemini: process.env.GEMINI_MODEL || "gemini-flash-lite-latest",
     llama: process.env.LLAMA_MODEL || "llama-3.3-70b-versatile",
   };
-  console.log(
-    provider
-      ? `API key: loaded (provider: ${provider}, model: ${modelFor[provider]})`
-      : "API key: MISSING — add GEMINI_API_KEY, LLAMA_API_KEY (both free), or ANTHROPIC_API_KEY to the .env file, then restart."
-  );
+
+  if (!chain.length) {
+    console.log("API key: MISSING — add GEMINI_API_KEY, LLAMA_API_KEY (both free), or ANTHROPIC_API_KEY to .env, then restart.");
+  } else {
+    console.log("Providers (failover order):");
+    chain.forEach((p, i) => console.log(`  ${i + 1}. ${p} — ${modelFor[p]}`));
+    if (chain.length === 1) {
+      console.log("  ! Only one provider configured — students will hit a wall when its");
+      console.log("    free quota runs out. Add a second (see README).");
+    }
+  }
 });

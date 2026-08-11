@@ -123,6 +123,37 @@ Paste before `</body>` on any page of your site:
 
 ---
 
+## Never running out: configure two providers
+
+Free tiers have **small daily caps**. One provider on its own *will* run dry during a
+busy week, and students would see "usage limit reached". The bot therefore accepts
+several providers and **fails over automatically** — if the first can't answer (quota
+exhausted, outage, revoked key, retired model), the next one takes the request. The
+student notices nothing.
+
+```
+Question → [1] Gemini ──quota/error──▶ [2] Groq ──error──▶ [3] Claude (optional, paid)
+                 │                          │
+              answers                    answers          ← whichever responds first wins
+```
+
+Set both keys (each free, neither needs a card) in `.env` locally **and** in Vercel →
+Settings → Environment Variables:
+
+| Variable | Where to get it |
+|---|---|
+| `GEMINI_API_KEY` | https://aistudio.google.com → Get API key |
+| `LLAMA_API_KEY` | https://console.groq.com → API Keys |
+| `LLM_PROVIDER` | `gemini,llama` — preferred order (optional) |
+
+Two free quotas plus the FAQ layer is enough for a normal placement season. If you
+want a hard guarantee that a question is *never* refused, add `ANTHROPIC_API_KEY` as a
+third link: it only gets used when both free tiers are exhausted, and costs a few
+cents when it does.
+
+`npm run dev` prints the active chain at startup and warns when only one provider is
+configured.
+
 ## Deploying completely free ($0 total)
 
 Hosting is already free (Vercel Hobby). To make the AI free too, use **Google
