@@ -1,46 +1,57 @@
 {
   "_README": [
-    "Escalation routing table. When the bot cannot answer, the student is asked for their",
-    "roll number; the first two letters are matched against 'departments' below and the",
-    "question is routed to that department's placement coordinator.",
+    "Escalation routing. When the bot cannot answer, the student fills a short form in",
+    "the chat widget. It is submitted to ONE Google Form; an Apps Script attached to the",
+    "response sheet then files each row into the sheet tab for that student's department,",
+    "based on the first two letters of the roll number (CH23B043 -> CH -> Chemical).",
     "",
-    "TO SET THIS UP:",
-    "  1. Fill in the 'email' for each department you want routed (ask your placement office).",
-    "  2. Delete any department rows your institute doesn't use.",
-    "  3. Correct any department names that are wrong for your institute.",
-    "  4. Set the 'default' email — anything unmatched goes there.",
-    "  5. Optionally set 'form' to a Google Form URL instead of an email for a department.",
-    "     If both are present, 'form' wins.",
-    "  6. Save, then: git add -A && git commit -m 'routing' && git push",
+    "SETUP (full walkthrough in ESCALATION-SETUP.md):",
+    "  1. Create a Google Form with three short-answer questions, in this order:",
+    "       Roll Number | Question | Department",
+    "  2. In the Form: ⋮ menu -> 'Get pre-filled link'. Type these EXACT dummy values:",
+    "       Roll Number = ROLLNUMBER",
+    "       Question    = QUESTION",
+    "       Department  = DEPARTMENT",
+    "     Click 'Get link' -> 'COPY LINK'.",
+    "  3. Run:  npm run setup-form \"<paste the copied link here>\"",
+    "     That fills in 'form' below automatically — you never touch entry IDs by hand.",
+    "  4. Attach the Apps Script from google-apps-script/segregate.gs to the response",
+    "     sheet so rows are sorted into per-department tabs.",
+    "  5. git add -A && git commit -m 'escalation form' && git push",
     "",
-    "Roll numbers are parsed as: <2-letter department><2-digit year><programme><serial>,",
-    "e.g. CH23B043 -> department code CH."
+    "Until 'form.actionUrl' is filled in, the widget falls back to the plain",
+    "'data-escalate-url' link, so nothing breaks in the meantime."
   ],
 
-  "default": {
-    "name": "Placement & Internship Cell",
-    "email": "",
-    "form": ""
+  "form": {
+    "actionUrl": "",
+    "fields": {
+      "rollNumber": "",
+      "question": "",
+      "department": ""
+    }
   },
 
+  "default": "Placement & Internship Cell",
+
   "departments": {
-    "AE": { "name": "Aerospace Engineering", "email": "", "form": "" },
-    "AM": { "name": "Applied Mechanics", "email": "", "form": "" },
-    "BT": { "name": "Biotechnology", "email": "", "form": "" },
-    "BS": { "name": "Biological Sciences", "email": "", "form": "" },
-    "CE": { "name": "Civil Engineering", "email": "", "form": "" },
-    "CH": { "name": "Chemical Engineering", "email": "", "form": "" },
-    "CS": { "name": "Computer Science & Engineering", "email": "", "form": "" },
-    "CY": { "name": "Chemistry", "email": "", "form": "" },
-    "ED": { "name": "Engineering Design", "email": "", "form": "" },
-    "EE": { "name": "Electrical Engineering", "email": "", "form": "" },
-    "EP": { "name": "Engineering Physics", "email": "", "form": "" },
-    "HS": { "name": "Humanities & Social Sciences", "email": "", "form": "" },
-    "MA": { "name": "Mathematics", "email": "", "form": "" },
-    "ME": { "name": "Mechanical Engineering", "email": "", "form": "" },
-    "MM": { "name": "Metallurgical & Materials Engineering", "email": "", "form": "" },
-    "MS": { "name": "Management Studies", "email": "", "form": "" },
-    "NA": { "name": "Ocean Engineering", "email": "", "form": "" },
-    "PH": { "name": "Physics", "email": "", "form": "" }
+    "AE": "Aerospace Engineering",
+    "AM": "Applied Mechanics",
+    "BS": "Biological Sciences",
+    "BT": "Biotechnology",
+    "CE": "Civil Engineering",
+    "CH": "Chemical Engineering",
+    "CS": "Computer Science & Engineering",
+    "CY": "Chemistry",
+    "ED": "Engineering Design",
+    "EE": "Electrical Engineering",
+    "EP": "Engineering Physics",
+    "HS": "Humanities & Social Sciences",
+    "MA": "Mathematics",
+    "ME": "Mechanical Engineering",
+    "MM": "Metallurgical & Materials Engineering",
+    "MS": "Management Studies",
+    "NA": "Ocean Engineering",
+    "PH": "Physics"
   }
 }

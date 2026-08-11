@@ -300,7 +300,7 @@ async function main() {
           a: answer,
         });
         console.log(`${label} — ok`);
-        if (entries.length % 10 === 0) await save();
+        if (entries.length % 5 === 0) await save();
       }
     } catch (err) {
       skipped++;

@@ -232,9 +232,13 @@
     return bestScore >= FAQ_THRESHOLD ? best : null;
   }
 
+  // NOTE: deliberately NOT cache:"force-cache". These files change whenever
+  // documents or routing are updated, and force-cache pins a student's browser to
+  // the version it first saw — serving last semester's answers indefinitely.
+  // A normal fetch revalidates (a cheap 304 once per page load) and stays correct.
   function loadFaq() {
     try {
-      fetch(CONFIG.faq, { cache: "force-cache" })
+      fetch(CONFIG.faq)
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) { if (j && j.entries) FAQ = j; })
         .catch(function () { /* no FAQ file — every question goes to the model */ });
@@ -247,20 +251,14 @@
 
   function loadRouting() {
     try {
-      fetch(CONFIG.routing, { cache: "force-cache" })
+      fetch(CONFIG.routing)
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) {
-          // Only switch on roll-number routing once at least one real destination
-          // exists — an unfilled template must not replace the working fallback link.
-          if (!j || !j.departments) return;
-          var usable = !!(j.default && (j.default.email || j.default.form));
-          if (!usable) {
-            for (var code in j.departments) {
-              var d = j.departments[code];
-              if (d && (d.email || d.form)) { usable = true; break; }
-            }
+          // Only switch on form escalation once the Google Form is actually wired
+          // up — an unfilled template must not replace the working fallback link.
+          if (j && j.form && j.form.actionUrl && j.form.fields && j.form.fields.rollNumber) {
+            ROUTING = j;
           }
-          if (usable) ROUTING = j;
         })
         .catch(function () { /* fall back to the single escalate URL */ });
     } catch (e) { /* ignore */ }
@@ -272,33 +270,45 @@
     return m ? m[1] : null;
   }
 
+  /** Resolve a roll number to a department name for the form's Department field. */
   function routeFor(roll) {
     if (!ROUTING) return null;
     var code = parseDeptCode(roll);
-    var dept = code && ROUTING.departments ? ROUTING.departments[code] : null;
-    var fallback = ROUTING.default || null;
-    var chosen = (dept && (dept.email || dept.form)) ? dept : fallback;
-    if (!chosen || (!chosen.email && !chosen.form)) return null;
+    var name = code && ROUTING.departments ? ROUTING.departments[code] : null;
     return {
-      code: code,
-      name: chosen.name || "Placement Office",
-      email: chosen.email || "",
-      form: chosen.form || "",
-      matched: !!(dept && (dept.email || dept.form)),
+      code: code || "",
+      name: name || ROUTING.default || "Placement & Internship Cell",
+      matched: !!name,
     };
   }
 
-  /** Build a mailto: link with the question and roll number already filled in. */
-  function buildMailto(route, roll, question) {
-    var subject = "Placement query [" + String(roll).toUpperCase() + "]";
-    var body =
-      "Roll number: " + String(roll).toUpperCase() + "\n" +
-      "Department: " + route.name + "\n\n" +
-      "Question:\n" + question + "\n\n" +
-      "(Sent from the placement assistant — the documents did not cover this question.)";
-    return "mailto:" + route.email +
-      "?subject=" + encodeURIComponent(subject) +
-      "&body=" + encodeURIComponent(body);
+  /**
+   * Submit the escalation to the Google Form.
+   *
+   * Google Forms sends no CORS headers, so we post with mode:"no-cors" — the row is
+   * recorded but the browser refuses to show us the response. That means we cannot
+   * read a success code; a resolved promise means "the request left the browser".
+   * Genuine network failures still reject, and the caller offers a manual fallback.
+   */
+  function submitToForm(roll, question, deptName) {
+    var f = ROUTING.form;
+    var body = new URLSearchParams();
+    body.append(f.fields.rollNumber, String(roll).toUpperCase());
+    if (f.fields.question) body.append(f.fields.question, question);
+    if (f.fields.department) body.append(f.fields.department, deptName);
+    return fetch(f.actionUrl, { method: "POST", mode: "no-cors", body: body });
+  }
+
+  /** A normal pre-filled form link, used as the manual fallback if posting fails. */
+  function buildPrefilledUrl(roll, question, deptName) {
+    var f = ROUTING.form;
+    var view = f.actionUrl.replace(/\/formResponse$/, "/viewform");
+    var qs = new URLSearchParams();
+    qs.append("usp", "pp_url");
+    qs.append(f.fields.rollNumber, String(roll).toUpperCase());
+    if (f.fields.question) qs.append(f.fields.question, question);
+    if (f.fields.department) qs.append(f.fields.department, deptName);
+    return view + "?" + qs.toString();
   }
 
   // ================= state =================
@@ -395,11 +405,11 @@
 
     function buildRouteCard(question) {
       var card = el("div", { class: "pbot-route" });
-      card.appendChild(el("p", {}, "I couldn't answer that from the official documents. Enter your roll number and I'll point you to the right coordinator."));
+      card.appendChild(el("p", {}, "I couldn't answer that from the official documents. Enter your roll number and I'll send this question to your department's placement coordinator."));
 
       var row = el("div", { class: "pbot-route-row" });
       var input = el("input", { type: "text", placeholder: "e.g. CH23B043", "aria-label": "Roll number", maxlength: "20" });
-      var go = el("button", { type: "button" }, "Find");
+      var go = el("button", { type: "button" }, "Send");
       row.appendChild(input);
       row.appendChild(go);
       card.appendChild(row);
@@ -407,34 +417,47 @@
       var result = el("div", {});
       card.appendChild(result);
 
+      var sent = false;
+
       function submit() {
+        if (sent) return;
         result.textContent = "";
         var roll = input.value.trim();
-        if (!roll) return;
 
-        var route = routeFor(roll);
-        if (!route) {
-          var err = el("div", { class: "pbot-route-err" },
-            "Routing isn't configured yet. Please contact the placement office directly.");
-          result.appendChild(err);
+        if (!/^[A-Za-z]{2}\s*\d{2}/.test(roll)) {
+          result.appendChild(el("div", { class: "pbot-route-err" },
+            "Please enter a valid roll number, e.g. CH23B043."));
           return;
         }
 
-        var box = el("div", { class: "pbot-route-result" });
-        var label = el("span", { class: "pbot-route-dept" },
-          route.matched
-            ? "→ " + route.name
-            : "→ " + route.name + " (no department match for that roll number)");
-        box.appendChild(label);
+        var route = routeFor(roll);
+        go.disabled = true;
+        go.textContent = "Sending…";
 
-        var link;
-        if (route.form) {
-          link = el("a", { class: "pbot-escalate", href: route.form, target: "_blank", rel: "noopener" }, "📩 Open the escalation form");
-        } else {
-          link = el("a", { class: "pbot-escalate", href: buildMailto(route, roll, question) }, "📩 Email the coordinator");
-        }
-        box.appendChild(link);
-        result.appendChild(box);
+        submitToForm(roll, question, route.name).then(function () {
+          sent = true;
+          input.disabled = true;
+          go.remove();
+          var box = el("div", { class: "pbot-route-result" });
+          box.appendChild(el("span", { class: "pbot-route-dept" },
+            "✓ Sent to " + route.name +
+            (route.matched ? "" : " (roll number didn't match a department)")));
+          box.appendChild(el("div", {},
+            "A coordinator will follow up. You can keep asking me other questions in the meantime."));
+          result.appendChild(box);
+        }).catch(function () {
+          go.disabled = false;
+          go.textContent = "Send";
+          var box = el("div", { class: "pbot-route-result" });
+          box.appendChild(el("div", { class: "pbot-route-err" }, "Couldn't submit automatically."));
+          var link = el("a", {
+            class: "pbot-escalate",
+            href: buildPrefilledUrl(roll, question, route.name),
+            target: "_blank", rel: "noopener",
+          }, "📩 Open the form instead");
+          box.appendChild(link);
+          result.appendChild(box);
+        });
       }
 
       go.addEventListener("click", submit);
