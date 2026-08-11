@@ -1,6 +1,6 @@
 # Session Summary — Placement & Internship Chatbot
 
-**Date:** 10 August 2026
+**Date:** 10–11 August 2026
 **Goal:** Build a free, embeddable AI chatbot that answers student questions about
 internship eligibility, placement processes, policies, and resume verification —
 grounded in official institute documents, with escalation to human coordinators.
@@ -164,6 +164,27 @@ The Gemini API key was pasted into the chat during testing, so treat it as expos
 4. Never share an API key in chats, emails, or screenshots
 
 ---
+
+## 5b. Escalation routing — set up and verified live ✅
+
+The Google Form → Apps Script → per-department sheet pipeline (see section 1b) is now
+fully configured and tested against the real form, real spreadsheet, and real trigger —
+not a simulation:
+
+1. Form created with three fields (Roll Number / Question / Department); field IDs
+   extracted automatically via `npm run setup-form` and written to `public/routing.json`
+2. A direct POST to the form's `/formResponse` endpoint returned `200` with a genuine
+   Google confirmation page
+3. Apps Script (`google-apps-script/segregate.gs`) installed; `backfillExisting` sorted
+   pre-trigger test rows into a new **"CH - Chemical Engineering"** tab
+4. **On Form Submit** trigger installed and authorized
+5. A full live round-trip through the actual chat widget — real escalation-worthy
+   question, real Gemini API call declining to guess, real roll number `CH24B999` —
+   landed in the correct department tab **automatically**, with no manual step. This is
+   the proof the entire student-facing flow works end to end.
+
+Three test rows (`TEST99Z999`, and two `CH...` rows) are in the sheet — the user is
+removing them manually.
 
 ## 6. What's left to do
 
