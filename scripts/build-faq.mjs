@@ -42,12 +42,27 @@ const LLAMA_MODEL = process.env.LLAMA_MODEL || "llama-3.3-70b-versatile";
 const LLAMA_BASE_URL = (process.env.LLAMA_BASE_URL || "https://api.groq.com/openai/v1").replace(/\/+$/, "");
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
 
+/**
+ * Which provider builds the FAQ. LLM_PROVIDER may be a comma-separated preference
+ * list (e.g. "gemini,llama") shared with the server — we take the first entry that
+ * has a key. Tip: run this with LLM_PROVIDER=llama so the build spends Groq's quota
+ * and leaves Gemini's free allowance for students.
+ */
 function pickProvider() {
-  const forced = (process.env.LLM_PROVIDER || "").toLowerCase();
-  if (["anthropic", "gemini", "llama"].includes(forced)) return forced;
-  if (process.env.ANTHROPIC_API_KEY) return "anthropic";
-  if (process.env.GEMINI_API_KEY) return "gemini";
-  if (process.env.LLAMA_API_KEY) return "llama";
+  const keyed = {
+    anthropic: !!process.env.ANTHROPIC_API_KEY,
+    gemini: !!process.env.GEMINI_API_KEY,
+    llama: !!process.env.LLAMA_API_KEY,
+  };
+  const preferred = (process.env.LLM_PROVIDER || "")
+    .toLowerCase()
+    .split(",")
+    .map((s) => s.trim())
+    .filter((p) => keyed[p]);
+  if (preferred.length) return preferred[0];
+  if (keyed.anthropic) return "anthropic";
+  if (keyed.gemini) return "gemini";
+  if (keyed.llama) return "llama";
   return null;
 }
 

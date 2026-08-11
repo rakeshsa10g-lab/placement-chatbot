@@ -49,6 +49,115 @@ try {
   console.error("knowledge/knowledge.md not found — run `npm run ingest` before deploying.");
 }
 
+// ---- context selection -------------------------------------------------------
+// Sending every document with every question is simple and accurate, but it costs
+// ~43K tokens per request. Providers that cap TOKENS PER MINUTE (Groq's free tier
+// allows 12K) can never serve that. So for those providers we send only the
+// sections relevant to the question, chosen by keyword overlap — no vector
+// database, no embeddings, no extra service to run.
+//
+// Budgets are in characters (~4 chars per token). 0 means "send everything".
+const CONTEXT_CHARS = {
+  gemini: Number(process.env.GEMINI_CONTEXT_CHARS || 0),      // huge context window
+  anthropic: Number(process.env.ANTHROPIC_CONTEXT_CHARS || 0),
+  llama: Number(process.env.LLAMA_CONTEXT_CHARS || 9000),     // ~2.2K tokens, fits 12K TPM
+};
+
+const STOPWORDS = new Set(
+  ("the a an is are was were do does did i my me we you your to for of in on at and or if can " +
+   "will would should what when how where which who it this that be have has get got any there " +
+   "about please tell am not with from by as but so than then they them their our us also more").split(" ")
+);
+
+function termsOf(text) {
+  return String(text).toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+}
+
+/** Split the knowledge base into retrievable chunks, keeping each document's title. */
+function buildChunks(knowledge) {
+  const chunks = [];
+  const docRe = /<document title="([^"]+)">([\s\S]*?)<\/document>/g;
+  let m;
+  const found = [];
+  while ((m = docRe.exec(knowledge)) !== null) found.push({ title: m[1], body: m[2] });
+  const docs = found.length ? found : [{ title: "Documents", body: knowledge }];
+
+  for (const doc of docs) {
+    // Break on blank lines, then glue small pieces into ~1200-character chunks.
+    const paras = doc.body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+    let buf = "";
+    const flush = () => {
+      if (!buf.trim()) return;
+      chunks.push({ title: doc.title, text: buf.trim(), terms: termsOf(buf) });
+      buf = "";
+    };
+    for (const p of paras) {
+      if ((buf + "\n\n" + p).length > 1200) flush();
+      buf = buf ? buf + "\n\n" + p : p;
+    }
+    flush();
+  }
+  return chunks;
+}
+
+/**
+ * Pick the chunks most relevant to the newest question, up to a character budget.
+ * Selected chunks are returned in their original document order so the excerpt
+ * still reads coherently and citations stay accurate.
+ */
+function selectContext(chunks, question, budgetChars) {
+  if (!budgetChars) return null; // caller sends the whole knowledge base
+  const qTerms = termsOf(question);
+  if (!qTerms.length) return null;
+  const want = new Set(qTerms);
+
+  const scored = chunks.map((c, index) => {
+    let hits = 0;
+    for (const t of c.terms) if (want.has(t)) hits++;
+    const titleHits = termsOf(c.title).filter((t) => want.has(t)).length;
+    // Normalise by length so a long chunk doesn't win on volume alone.
+    const score = (hits / Math.sqrt(c.terms.length || 1)) + titleHits * 0.5;
+    return { index, score, chunk: c };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const picked = [];
+  let used = 0;
+  for (const s of scored) {
+    if (s.score <= 0) break;
+    const cost = s.chunk.text.length + s.chunk.title.length + 24;
+    if (used + cost > budgetChars) continue;
+    picked.push(s);
+    used += cost;
+  }
+  if (!picked.length) return null;
+
+  picked.sort((a, b) => a.index - b.index);
+  return picked
+    .map((p) => `<excerpt from="${p.chunk.title}">\n${p.chunk.text}\n</excerpt>`)
+    .join("\n\n");
+}
+
+let CHUNKS = [];
+if (KNOWLEDGE) CHUNKS = buildChunks(KNOWLEDGE);
+
+/** The reference text to send to a given provider for this question. */
+function contextFor(provider, messages) {
+  const budget = CONTEXT_CHARS[provider] || 0;
+  if (!budget || KNOWLEDGE.length <= budget) {
+    return `Reference documents:\n\n${KNOWLEDGE}`;
+  }
+  const question = messages[messages.length - 1]?.content || "";
+  const excerpt = selectContext(CHUNKS, question, budget);
+  if (!excerpt) return `Reference documents:\n\n${KNOWLEDGE.slice(0, budget)}`;
+  const titles = [...new Set(CHUNKS.map((c) => c.title))].join(", ");
+  return (
+    `Relevant excerpts from the official documents (${titles}).\n` +
+    `If the excerpts do not contain the answer, say so — do not guess.\n\n${excerpt}`
+  );
+}
+
 const INSTRUCTIONS = `You are the official placement and internship assistant for ${INSTITUTION}. You answer student questions about internship eligibility, placement processes, policies, deadlines, and resume verification.
 
 Rules:
@@ -162,7 +271,7 @@ async function streamAnthropic(messages, res) {
       { type: "text", text: INSTRUCTIONS },
       {
         type: "text",
-        text: `Reference documents:\n\n${KNOWLEDGE}`,
+        text: contextFor("anthropic", messages),
         // Cache the instructions + knowledge prefix: ~90% cheaper on every
         // request within the 5-minute TTL; stays permanently warm when busy.
         cache_control: { type: "ephemeral" },
@@ -188,7 +297,7 @@ async function streamGemini(messages, res) {
     },
     body: JSON.stringify({
       system_instruction: {
-        parts: [{ text: `${INSTRUCTIONS}\n\nReference documents:\n\n${KNOWLEDGE}` }],
+        parts: [{ text: `${INSTRUCTIONS}\n\n${contextFor("gemini", messages)}` }],
       },
       contents: messages.map((m) => ({
         role: m.role === "assistant" ? "model" : "user",
@@ -228,7 +337,7 @@ async function streamLlama(messages, res) {
       stream: true,
       max_tokens: 1024,
       messages: [
-        { role: "system", content: `${INSTRUCTIONS}\n\nReference documents:\n\n${KNOWLEDGE}` },
+        { role: "system", content: `${INSTRUCTIONS}\n\n${contextFor("llama", messages)}` },
         ...messages,
       ],
     }),

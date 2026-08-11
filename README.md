@@ -151,6 +151,22 @@ want a hard guarantee that a question is *never* refused, add `ANTHROPIC_API_KEY
 third link: it only gets used when both free tiers are exhausted, and costs a few
 cents when it does.
 
+### Why the fallback sends less text
+
+Free tiers cap **tokens per minute**, not just requests — Groq allows 12,000 TPM while
+the full knowledge base is ~43,000 tokens, so it could never answer with every document
+attached. For those providers the bot sends only the sections relevant to the question,
+picked by keyword match (`LLAMA_CONTEXT_CHARS`, default 9000 characters). No vector
+database, no embeddings, nothing extra to run.
+
+Verified: with excerpts only, Groq still answers correctly and cites sources —
+*"According to the Company Credit Policy 2025-26 … 150 credits … Day 1 Companies: 6 or
+4 credits, as decided by the Slotting Committee."*
+
+Gemini keeps receiving the complete documents (`GEMINI_CONTEXT_CHARS=0`) because its
+context window is large enough. Set it to a number if you want to stretch its quota
+further at some cost to completeness.
+
 `npm run dev` prints the active chain at startup and warns when only one provider is
 configured.
 
