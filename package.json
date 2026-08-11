@@ -8,6 +8,7 @@
     "ingest": "node scripts/ingest.mjs",
     "build-faq": "node scripts/build-faq.mjs",
     "setup-form": "node scripts/setup-form.mjs",
+    "tune-faq": "node scripts/tune-faq.mjs",
     "dev": "node scripts/dev-server.mjs"
   },
   "engines": {
