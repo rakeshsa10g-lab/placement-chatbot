@@ -21,10 +21,16 @@ import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
-// "gemini-flash-latest" is an alias that always points at Google's current Flash
-// model. Pinning a version (e.g. gemini-2.5-flash) eventually breaks: retired
-// models return 404 "no longer available to new users" for newly-created keys.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
+// Both names are ALIASES that always track Google's current models — pinning a
+// version (e.g. gemini-2.5-flash) eventually breaks with 404 "no longer available
+// to new users" once that version is retired.
+//
+// "-lite" is the default because its free-tier quota is far larger: the full Flash
+// model allows only ~5 requests/minute on the free tier, which a busy placement
+// season exhausts immediately. Lite still cites documents correctly and answers
+// faster. For richer prose (and much lower throughput) set:
+//     GEMINI_MODEL=gemini-flash-latest
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 const LLAMA_MODEL = process.env.LLAMA_MODEL || "llama-3.3-70b-versatile";
 const LLAMA_BASE_URL = (process.env.LLAMA_BASE_URL || "https://api.groq.com/openai/v1").replace(/\/+$/, "");
 const INSTITUTION = process.env.INSTITUTION_NAME || "our institute";

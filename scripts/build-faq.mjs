@@ -37,7 +37,7 @@ const HOW_MANY = Number(process.argv[2]) || 60;
 const DELAY_MS = Number(process.env.FAQ_DELAY_MS || 13000);
 const INSTITUTION = process.env.INSTITUTION_NAME || "our institute";
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 const LLAMA_MODEL = process.env.LLAMA_MODEL || "llama-3.3-70b-versatile";
 const LLAMA_BASE_URL = (process.env.LLAMA_BASE_URL || "https://api.groq.com/openai/v1").replace(/\/+$/, "");
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
