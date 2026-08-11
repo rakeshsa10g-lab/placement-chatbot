@@ -1,127 +1,718 @@
 {
- "generated": "2026-08-11T08:50:31.804Z",
+ "generated": "2026-08-11T10:03:04.247Z",
  "institution": "IIT Madras",
- "count": 10,
+ "count": 60,
  "entries": [
   {
-   "q": "What is the eligibility criteria regarding backlogs for placement registration?",
+   "q": "What are the eligibility criteria for final-year students regarding backlogs?",
    "keywords": [
     "eligibility",
-    "criteria",
+    "final-year",
+    "students",
     "backlogs",
-    "placement",
-    "registration",
-    "rules"
-   ],
-   "a": "According to the **Student Guidelines & Policies - Placements 2025-26 (Eligibility Criteria)**:\n\n* **General Rule:** All final-year students having **3 or fewer backlogs** are eligible to register without restrictions.\n\n* **Backlog Definitions:**\n  * **July–Nov 2024 semester and before:** Any core course with a **U**, **W**, or an **I/blank** grade is considered a backlog.\n  * **Jan–May 2025 semester:** Any core course with a **U** or **W** grade is considered a backlog.\n\n* **Exceptions (Not counted as a backlog):** A course will **not** be considered a backlog if:\n  * The student obtains an email from the course faculty providing written assurance that the course will be completed before graduation, **OR**\n  * The student has registered for the course in the July–Nov 2025 semester."
-  },
-  {
-   "q": "Can a student with more than 3 backlogs register for placements?",
-   "keywords": [
-    "student",
-    "backlogs",
-    "register",
-    "placements",
-    "three",
-    "exceeding"
-   ],
-   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Eligibility Criteria section):\n\nNo, only final-year students having **3 or fewer backlogs** are eligible to register without restrictions. \n\nHowever, a course will **not** be counted as a backlog if:\n* The student obtains written assurance via email from the course faculty stating that they will complete the course before graduation, **OR**\n* The student has registered for the course in the July-Nov 2025 semester."
-  },
-  {
-   "q": "How are core course backlogs defined for the July-Nov 2024 semester?",
-   "keywords": [
     "core",
-    "course",
-    "backlogs",
-    "defined",
-    "semester",
+    "courses",
     "grades"
    ],
-   "a": "According to **Student Guidelines & Policies Placements 2025-26** (Section: *Eligibility Criteria*):\n\nFor the July-Nov 2024 semester and before, any core course with a **U**, **W**, or an **I/blank** grade is considered a backlog. \n\nHowever, a course in these categories will **not** be considered a backlog if:\n* The student obtains an email from the course faculty providing written assurance that they will complete the course before graduation, **OR**\n* The student has registered for the course in the July-Nov 2025 semester."
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Eligibility Criteria section) and the **Placement Student Guidelines Revised.pdf** (Eligibility Criteria section), all final-year students having **3 or fewer backlogs** are eligible to register without restrictions. \n\nBacklogs are defined as follows:\n* For the **July-Nov 2024 semester and before**, any core course with a U, W, or an I/blank grade is considered a backlog.\n* For the **Jan-May 2025 semester**, any core course with a U or W grade is considered a backlog. \n\nHowever, a course falling into the above categories will **not** be considered a backlog if:\n* The student can obtain an email from the course faculty for a written assurance that the student will complete the course before graduation; **(OR)**\n* The student has registered for the course in the July-Nov 2025 semester."
   },
   {
-   "q": "What is the minimum credit requirement for BTech students to be eligible for placements?",
+   "q": "What is considered a backlog for the July-Nov semester and before?",
    "keywords": [
-    "minimum",
+    "backlog",
+    "july-nov",
+    "semester",
+    "core",
+    "grade",
+    "blank"
+   ],
+   "a": "According to the Student Guidelines and Policies (Eligibility Criteria section):\n\nFor the July-Nov semester and before, any core course with a **U**, **W**, or an **I/blank grade** is considered a backlog."
+  },
+  {
+   "q": "What is considered a backlog for the Jan-May semester?",
+   "keywords": [
+    "backlog",
+    "jan-may",
+    "semester",
+    "core",
+    "grade",
+    "course"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Eligibility Criteria section), for the Jan-May semester (Jan-May 2025), any core course with a **U or W grade** is considered a backlog. \n\nHowever, a course falling into this category will **not** be considered a backlog if:\n* The student can obtain an email from the course faculty for a written assurance that the student will complete the course before graduation, **(OR)**\n* The student has registered for the course in the July-Nov 2025 semester."
+  },
+  {
+   "q": "Under what conditions will a course with a U or W grade not be considered a backlog?",
+   "keywords": [
+    "course",
+    "grade",
+    "backlog",
+    "faculty",
+    "assurance",
+    "graduation"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Eligibility Criteria section), a core course with a U or W grade will not be considered a backlog if:\n\n* The student can obtain an email from the course faculty for a written assurance that the student will complete the course before graduation.\n* **(OR)** The student has registered for the course in the July-Nov 2025 semester."
+  },
+  {
+   "q": "What are the minimum credit requirements for different degrees to sit for placements?",
+   "keywords": [
     "credit",
-    "requirement",
+    "requirements",
+    "degrees",
     "btech",
-    "eligible",
-    "placements"
-   ],
-   "a": "According to the Student Guidelines & Policies Placements 2025-26 (Section: Eligibility Criteria):\n\nThe minimum credit requirement for BTech students to be eligible for placements without needing special approval is **300 credits**. If a student does not meet this requirement, they must obtain approval from the placement team."
-  },
-  {
-   "q": "What minimum credits are required for Dual Degree students to register for placements?",
-   "keywords": [
-    "credits",
-    "required",
     "dual",
-    "degree",
-    "register",
-    "placements"
-   ],
-   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Section: *Eligibility Criteria*), Dual Degree students require a minimum of **418 credits** to register for placements without needing special approval from the placement team."
-  },
-  {
-   "q": "How many minimum credits must an MTech student have to be eligible for placements?",
-   "keywords": [
-    "minimum",
-    "credits",
     "mtech",
-    "student",
-    "eligible",
-    "placements"
+    "mba"
    ],
-   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Eligibility Criteria section), an MTech student must have a minimum of **73 credits**. \n\nIf a student does not meet this requirement, they must get approval from the placement team."
+   "a": "According to the **Student Guidelines & Policies (Eligibility Criteria)**, the minimum credit requirements for different degrees are as follows:\n\n* **BTech:** **300 credits**\n* **Dual Degree:** **418 credits**\n* **Integrated MA:** **379 credits**\n* **MA:** **68 credits**\n* **MSc:** **78 credits**\n* **MBA:** **111 credits**\n* **MTech:** **73 credits**\n\n*(Note: If a student's current total credits do not meet these minimum requirements, they must get approval from the placement team.)*"
   },
   {
-   "q": "What is the minimum credit requirement for MBA and MSc students to appear for placements?",
+   "q": "What is the placement registration fee for PhD students and others?",
    "keywords": [
-    "minimum",
-    "credit",
-    "requirement",
-    "mba",
-    "msc",
-    "placements"
+    "registration",
+    "fee",
+    "phd",
+    "students",
+    "btech",
+    "dual",
+    "gst"
    ],
-   "a": "According to Student Guidelines & Policies Placements 2025-26 (Eligibility Criteria), the minimum credit requirements are:\n\n* **MSc**: **78 credits**\n* **MBA**: **111 credits**\n\n*(Note: If a student's total credits do not meet these minimum requirements, they must obtain approval from the placement team.)*"
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Registration section):\n\n* **PhD students:** **₹1500** (inclusive of GST)\n* **Others:** **₹2200** for BTech and Dual Degree (21 and 22 batch) and **₹500** for MA, MSc, MTech, MBA (23 batch onwards) (inclusive of GST)."
   },
   {
-   "q": "Can a student on academic extension register for placements on Day 1 Slot 1?",
+   "q": "What happens if a student deferred placements in the past academic year with valid permission?",
+   "keywords": [
+    "deferred",
+    "placements",
+    "academic",
+    "year",
+    "permission",
+    "test",
+    "ppt"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Eligibility Criteria section) and the **Student Guidelines and Policies Revised.pdf** (Eligibility Criteria section):\n\nIf a student deferred placements in the past academic year with valid permission and did not appear in any placement test or PPT, their category and required actions are:\n\n* **Starting Slot:** **Day 1 (Slot 1)**\n* **Action Required from Student:** \n  * Need to provide proof of approval of the deferral request from the previous year.\n  * Need to pay the Placement Registration fee."
+  },
+  {
+   "q": "Can a student on academic extension register and appear for placements?",
    "keywords": [
     "academic",
     "extension",
-    "register",
+    "student",
     "placements",
-    "day1",
-    "slot1"
+    "proof",
+    "graduation"
    ],
-   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Section: *Eligibility Criteria - Special Cases*):\n\n* **Yes, if they have NOT appeared for Placements before:** A student on Academic Extension who did not appear for placements previously can appear from **Day 1 (Slot 1)**. They must submit relevant proof to the Placement Office and pay the Placement Registration fee.\n* **If they HAVE appeared for Placements before:** The slot from which they can appear is **To Be Decided (TBD) by the Advisor**. They must submit relevant proof to the Placement Office, proof of graduation in 2026, and pay the Placement Registration fee."
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Eligibility Criteria, Section: Special Cases), students on academic extension can register and appear for placements based on the following conditions:\n\n* **If on academic extension and did not appear for Placements before Day 1 (Slot 1):** \n  * You need to submit relevant proof to the Placement office and pay the Placement Registration fee.\n* **If on academic extension and appeared for Placements before:** \n  * The timing will be **TBD by the Advisor**. You need to submit relevant proof to the Placement Office, submit proof of graduation in 2026, and pay the Placement Registration fee."
   },
   {
-   "q": "Can I participate in Day 1 Slot 1 if I deferred placements in the previous academic year?",
+   "q": "What slot can a student appear from if they lost an offer received in Slots 1-4?",
    "keywords": [
-    "participate",
-    "day1",
-    "deferred",
-    "placements",
-    "previous",
-    "academic"
+    "slot",
+    "appear",
+    "student",
+    "lost",
+    "offer",
+    "received",
+    "past"
    ],
-   "a": "According to the **Student Guidelines & Policies Placements 2025-26 (Section: Eligibility Criteria - Special Cases)**, **yes**, you can participate from **Day 1 (Slot 1)**, depending on your situation:\n\n* **If you did NOT appear in any placement test or PPT in the past academic year:**\n  * **Eligibility:** Allowed to appear from **Day 1 (Slot 1)**.\n  * **Required Action:** Provide proof of approval of your deferral request from the previous year and pay the Placement Registration fee.\n\n* **If you appeared in test(s) and/or PPT(s) before deferring:**\n  * **Eligibility:** Allowed to appear from **Day 1 (Slot 1)** upon provision and approval of a valid excuse for why you deferred after participating.\n  * **Required Action:** Provide proof of approval of your deferral request from the previous year and pay the Placement Registration fee."
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Special Cases table, Section: Eligibility Criteria), if a student appeared for interviews in the past academic year and lost an offer received in Slots 1-4, they can appear from:\n\n* **The slot in which they received their offer in the past academic year** (they need to inform the placement office and department team, and need not pay the Placement Registration fee)."
   },
   {
-   "q": "What happens if a student appeared for Phase 1 interviews in the past year but received no offer?",
+   "q": "What are the rules for a student whose PPO was withdrawn by the company?",
    "keywords": [
-    "appeared",
+    "ppo",
+    "withdrawn",
+    "company",
+    "student",
+    "placement",
+    "fee",
+    "day"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26 (Special Cases table)**, for a student who received and accepted a PPO in the past academic year and the offer was withdrawn by the company:\n\n* **Starting Slot:** They can appear from **Day 1 (Slot 1)**.\n* **Requirements:** They need to inform the placement office and department team, but they **need not pay** the Placement Registration fee."
+  },
+  {
+   "q": "What is the procedure for a DD or IDDD student who chooses to revert their degree to a B.Tech?",
+   "keywords": [
+    "iddd",
+    "revert",
+    "degree",
+    "btech",
+    "portal",
+    "registration"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Eligibility Criteria section):\n\nFor a DD or IDDD student who chooses to sit for placements after reverting their degree to a B.Tech, the procedure is as follows:\n* The student should submit a request before **September 12th**.\n* Register on the placement portal after paying the registration fee.\n* In case the student has an internship account active, they would need to deregister the same. \n* The student will be allowed to take part in all placement activities that occur after their account is activated. \n* Note that the team will not be liable for any processes (resume deadlines, tests, etc.) that the student has missed out on."
+  },
+  {
+   "q": "What are the initial credits allocated to each student at the beginning of the placement season?",
+   "keywords": [
+    "credits",
+    "allocated",
+    "student",
+    "beginning",
+    "placement",
+    "season"
+   ],
+   "a": "According to the Company Credit Policy 2025-26, each student will be allocated **150** credits at the beginning of the placement season."
+  },
+  {
+   "q": "How many credits are deducted for applying to Day 1 companies?",
+   "keywords": [
+    "credits",
+    "deducted",
+    "applying",
+    "day1",
+    "companies",
+    "slotting"
+   ],
+   "a": "According to the Company Credit Policy (Section: Credit Policy) in the *Student Guidelines & Policies - Placements 2025-26.pdf* (and *Company Credit Policy 2025-26 (5).pdf*), **4 credits** are deducted for applying to Day 1 (1.1 + 1.2) companies."
+  },
+  {
+   "q": "Under what circumstances will application credits be reimbursed automatically?",
+   "keywords": [
+    "credits",
+    "reimbursed",
+    "automatically",
+    "shortlist",
+    "interview",
+    "application"
+   ],
+   "a": "According to the **Company Credit Policy 2025-26 (5).pdf** (Section: Company Credit Policy), application credits will be reimbursed automatically under the following circumstances:\n\n* **Shortlist status:** Credits will be reimbursed automatically in case a student does not make it to the shortlist, but **only for all shortlists prior to the final interview/GD shortlist**.\n* **Company withdrawal:** If a company withdraws from the placement process, the credits used for that application will be reimbursed to the students."
+  },
+  {
+   "q": "How can students earn bonus credits or incentive points?",
+   "keywords": [
+    "earn",
+    "bonus",
+    "credits",
+    "incentive",
+    "points",
+    "preparatory",
+    "activities"
+   ],
+   "a": "According to the **Company Credit Policy 2025-26 (5).pdf** (Section: Bonus credits / Incentive Points), students can earn additional credits by participating in preparatory activities organized by the Placement & Internship Cell. \n\n* The specific incentive points for each activity will be announced prior to the event on smail.\n* Incentive points are accrued on a discrete basis, and conversion into credits is permitted only upon crossing defined thresholds.\n* The extra credits correspond to incentive points as follows:\n  * **>40 points:** 10 extra credits\n  * **>70 points:** 20 extra credits\n  * **>100 points:** 25 extra credits\n  * **>120 points:** 30 extra credits\n  * **>150 points:** 40 extra credits"
+  },
+  {
+   "q": "What are the penalties for the first and second violations of malpractice during tests?",
+   "keywords": [
+    "penalties",
+    "violations",
+    "malpractice",
+    "tests",
+    "first",
+    "second",
+    "credit"
+   ],
+   "a": "According to the **Company Credit Policy** (Placement Integrity Violations section), the penalties for malpractice during tests are:\n\n* **First Violation:** **20** penalty credits\n* **Second Violation:** **30** penalty credits"
+  },
+  {
+   "q": "What happens if a student commits more than three placement integrity violations?",
+   "keywords": [
+    "student",
+    "commits",
+    "violations",
+    "permanently",
+    "deregistered",
+    "placement"
+   ],
+   "a": "According to the Company Credit Policy (Placement Integrity Violations section):\n\n* Any student who commits more than three violations will be permanently deregistered from the placement process."
+  },
+  {
+   "q": "Can students round off their CGPA on the resume?",
+   "keywords": [
+    "students",
+    "round",
+    "cgpa",
+    "resume",
+    "strictly",
+    "prohibited",
+    "grade"
+   ],
+   "a": "According to the **Student Resume Guidelines - Placements 2025-26** (Section: Education) and the **Placement Resume Guidelines 2024-25** (Section: Checkpoints & FAQs):\n\n* **No**, rounding off CGPA or any scores is strictly prohibited. \n* You must mention the CGPA precisely as it appears in the official Institute Grade Card (for example, *7.99 is NOT 8, and 8.56 is NOT 8.6*)."
+  },
+  {
+   "q": "What proof is required for professional internships or completed work experience?",
+   "keywords": [
+    "proof",
+    "required",
+    "professional",
+    "internships",
+    "work",
+    "experience",
+    "certificate"
+   ],
+   "a": "According to the **Student Resume Guidelines - Placements 2025-26** (Professional Experience section):\n\nFor any completed internships or work experience, only the following combinations of proofs will be accepted:\n\n* **Completion Certificate** or **Relieving Letter**\n* **Offer letter + Acknowledgement Mail** from the company regarding completion of the intern\n* **Offer letter + Stipend payment details** with the company name\n* For **Research Internships**, a letter from the professor indicating the project’s title along with the start and end date is sufficient, or a certificate from the University or program head is adequate."
+  },
+  {
+   "q": "What format should be used for Positions of Responsibilities falling under Institute Secretaries?",
+   "keywords": [
+    "format",
+    "positions",
+    "responsibilities",
+    "pors",
+    "institute",
+    "secretaries",
+    "master"
+   ],
+   "a": "According to the **Student Resume Guidelines - Placements 2025-26** (Section: Positions of Responsibilities (PORs)), for PoRs falling under an Institute Secretary, you must use the following specific formats in your master resume:\n\n* **Shaastra:** Co-curricular Affairs Secretary, Shaastra <year>, Vertical, Position, Sub-vertical\n* **Saarang:** Cultural Affairs Secretary, Saarang <year>, Vertical, Position, Sub-vertical\n* **CFI:** Co-curricular Affairs Secretary, Club, Coordinator/Project member, Project name (if applicable)\n* **Placement & Internship Cell:** Academic Affairs Secretary, Placement & Internship Cell, Department, Position\n\nKindly follow a similar format for all other PORs that fall under a secretary."
+  },
+  {
+   "q": "What is the deadline for closed PPOs?",
+   "keywords": [
+    "deadline",
+    "closed",
+    "ppos",
+    "september",
+    "offer",
+    "placement"
+   ],
+   "a": "According to the Student Guidelines & Policies (Timeline section):\n\n* The deadline for closed PPOs is **13 September**."
+  },
+  {
+   "q": "What is the timeline for the resume submission period?",
+   "keywords": [
+    "timeline",
+    "resume",
+    "submission",
+    "period",
+    "august",
+    "portal"
+   ],
+   "a": "According to the Student Guidelines and Policies - Placements 2025-26 (Timeline tentative section) and the Student Guidelines and Policies (Revised) (Section: Timeline (Tentative)):\n\n* **Resume Submission Period:** **10 August - 13 August**"
+  },
+  {
+   "q": "What is the policy regarding one student and one offer during placements?",
+   "keywords": [
+    "policy",
+    "student",
+    "offer",
+    "placement",
+    "eligible",
+    "accept",
+    "deregistered"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Section: *Offer-Management-and-Policies* -> *One Student One Offer*):\n\n* Each student is eligible to accept at most one Placement offer through the process.\n* A student is deregistered from the Placement Portal after the slot in which he or she receives the first offer, and is considered “placed”.\n* If a student receives multiple offers in a slot, he or she can accept at most one offer, and the other offers will be considered rejected.\n* If a waitlisted student gets an offer in a later slot, and later gets a confirmation from the company that waitlisted them, they can choose between both offers."
+  },
+  {
+   "q": "How much time does a student have to accept or reject an offer on Days 1 to 4?",
+   "keywords": [
+    "time",
+    "student",
+    "accept",
+    "reject",
+    "offer",
+    "days",
+    "slot"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Interviews section), the time window to accept or reject an offer for Days 1 to 4 is:\n\n* **Slot 1:** Time of offer to **12 PM the following day**\n* **Slot 2:** Time of offer to **5 PM the following day**\n\n*(Note: In the case of a waitlist, an additional 12 hours will be provided).*"
+  },
+  {
+   "q": "What are the dress code requirements for placement interviews?",
+   "keywords": [
+    "dress",
+    "code",
+    "requirements",
+    "placement",
     "interviews",
-    "phase1",
-    "past",
-    "year",
+    "shirt",
+    "trousers"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Section: *Dress Code*), the dress code requirements for placement interviews are:\n\n* **Full Sleeve Shirt** (tucked in)\n* **Trousers** (full pant)\n* **Hair combed**\n* **Shoes** (Polished)\n\n*Note: Flip Flops/Sandals, shorts, and sleeveless clothing are not allowed.*"
+  },
+  {
+   "q": "When does the resume submission period take place for placements?",
+   "keywords": [
+    "resume",
+    "submission",
+    "period",
+    "dates",
+    "timeline"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Timeline Section) and the **Student Resume Guidelines - Placements 2025-26** (Resume Guidelines section):\n\n* The resume submission period takes place from **10 August - 13 August** (as stated in the timeline).\n* Additionally, resumes have to be submitted by **15th August** (as noted under General Information in the resume guidelines)."
+  },
+  {
+   "q": "What is the deadline for closed PPOs during the placement process?",
+   "keywords": [
+    "closed",
+    "ppo",
+    "deadline",
+    "september",
     "offer"
    ],
-   "a": "According to the **Student Guidelines & Policies Placements 2025-26** (Section: *Eligibility Criteria - Special Cases*):\n\nA student who appeared for Phase 1 interviews in the past academic year and did not receive a job offer:\n* **Can appear for placements starting from:** **Day 4**\n* **Required Actions:** \n  * Inform the placement office and your department team.\n  * Pay the Placement Registration fee."
+   "a": "According to the Student Guidelines & Policies (Timeline section), the deadline for closed PPOs is **13 September**."
+  },
+  {
+   "q": "When do placement tests start for phase 1 companies?",
+   "keywords": [
+    "test",
+    "start",
+    "date",
+    "phase",
+    "september"
+   ],
+   "a": "According to the **Student Guidelines and Policies (Timeline section)** and the **Student Guidelines and Policies - Placements 2025-26 (Timeline section)**:\n\n* Placement tests for phase 1 companies start on **14 September onwards**."
+  },
+  {
+   "q": "What date do placement interviews begin?",
+   "keywords": [
+    "interview",
+    "start",
+    "date",
+    "december",
+    "phase"
+   ],
+   "a": "According to the Student Guidelines & Policies (Timeline section):\n\n* **Interview start date:** **1 December**\n\n*(Source: Student Guidelines & Policies - Placements 2025-26, Timeline)*"
+  },
+  {
+   "q": "When do company resume deadlines begin?",
+   "keywords": [
+    "company",
+    "resume",
+    "deadlines",
+    "august",
+    "start"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Timeline section), company resume deadlines begin on **30 August onwards**."
+  },
+  {
+   "q": "When do pre-placement talks (PPTs) start?",
+   "keywords": [
+    "ppts",
+    "start",
+    "date",
+    "august",
+    "talks"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Timeline tentative section), Pre-Placement Talks (PPTs) start on **15 August**."
+  },
+  {
+   "q": "Until what date can open PPOs be issued?",
+   "keywords": [
+    "open",
+    "ppos",
+    "issued",
+    "november",
+    "deadline"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Pre-Placement Offer Policy section):\n\n* Open PPOs can be issued anytime on or before **November 30**."
+  },
+  {
+   "q": "What is the deadline for a DD or IDDD student to submit a request to revert their degree to B.Tech?",
+   "keywords": [
+    "revert",
+    "degree",
+    "tech",
+    "deadline",
+    "september"
+   ],
+   "a": "According to the **Student Guidelines & Policies (Special Cases)**:\n\n* The deadline to submit a request to revert your degree to a B.Tech is **September 12th**."
+  },
+  {
+   "q": "By what date must companies send out official offer letters to candidates?",
+   "keywords": [
+    "offer",
+    "letters",
+    "send",
+    "march",
+    "candidates"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Section: *Offer-Management-and-Policies - Offer Letter*), companies will send out offer letters to candidates **before the end of March 2026**."
+  },
+  {
+   "q": "What is the deadline for uploading resumes in the 2025-26 placement season?",
+   "keywords": [
+    "uploading",
+    "resumes",
+    "deadline",
+    "august",
+    "season"
+   ],
+   "a": "According to the Student Resume Guidelines - Placements 2025-26 (Section: General Information) and the Student Guidelines & Policies - Placements 2025-26 (Timeline), the deadline for uploading resumes is **15th August** (with the resume submission period noted as **10 August - 13 August**)."
+  },
+  {
+   "q": "How are interview slots structured across different days of placements?",
+   "keywords": [
+    "interview",
+    "slots",
+    "structure",
+    "days",
+    "morning",
+    "afternoon"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Section: Interviews):\n\n* **First 4 Days:** Each day has **2 slots**, one in the morning and the other in the afternoon, denoted as 1.1, 1.2, etc.\n* **From Day 5 and beyond:** There is **1 slot per day** running from morning to night."
+  },
+  {
+   "q": "What slot does a student who appeared only for Phase 2 in the past academic year get?",
+   "keywords": [
+    "phase",
+    "slot",
+    "appeared",
+    "academic",
+    "year"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Eligibility Criteria section) and the **Placement Student Guidelines Revised.pdf** (Eligibility Criteria section), a student who registered and appeared only for Phase 2 in the past academic year and did not get a job offer will appear from:\n\n* **Day 1 (Slot 1)**"
+  },
+  {
+   "q": "Which slot can a student who appeared for interviews from Phase 1 in the past academic year appear from?",
+   "keywords": [
+    "phase",
+    "slot",
+    "interviews",
+    "academic",
+    "past"
+   ],
+   "a": "According to the Student Guidelines and Policies - Placements (Special Cases section):\n\nA student who appeared for interviews from Phase 1 in the past academic year and did not get a job offer can appear from **Day 4**. \n\nTo do so, they need to inform the placement office and department team, and pay the Placement Registration fee."
+  },
+  {
+   "q": "What slot are students assigned if they lost an offer received from Slot 5 onward in Phase 1?",
+   "keywords": [
+    "lost",
+    "offer",
+    "slot",
+    "phase",
+    "onward"
+   ],
+   "a": "According to the Student Guidelines & Policies (Special Cases table):\n\nStudents who appeared for interviews in the past academic year and lost an offer received from **Slot 5 onward in Phase 1 and all of Phase 2** are assigned to **Day 1 (Slot 1)**. \n\nThey need to inform the placement office and department team, and they need not pay the Placement Registration fee."
+  },
+  {
+   "q": "What are the credit consumption values for Day 2, Day 3, and Day 4 onwards companies?",
+   "keywords": [
+    "credits",
+    "consumption",
+    "companies",
+    "day",
+    "deduction"
+   ],
+   "a": "According to the **Company Credit Policy** (found in the *Company Credit Policy 2025-26 (5).pdf* and *Student Guidelines and Policies - Placements 2025-26.pdf*), the credit consumption values for company applications are:\n\n* **Day 2 Companies:** **3** Credits\n* **Day 3 Companies:** **2** Credits\n* **Day 4 Onwards:** **1** Credit"
+  },
+  {
+   "q": "How much time does a student have to inform the office of their choice if they receive multiple offers on the same day?",
+   "keywords": [
+    "multiple",
+    "offers",
+    "same",
+    "day",
+    "hours",
+    "choice"
+   ],
+   "a": "According to the Student Guidelines & Policies - Placements 2025-26 (Section on Offer Management and Policies - Multiple Offers): \n\nIf a student receives multiple offers on the same day, they must choose from the offers in hand and inform the Placement Office of their choice **within 12 hours** of the announcement of the offers on the portal."
+  },
+  {
+   "q": "What is the offer acceptance timeline for Day 5 and beyond interviews?",
+   "keywords": [
+    "acceptance",
+    "timeline",
+    "day",
+    "beyond",
+    "hours"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Section: *Interviews* - Step 7.b):\n\n* For Day 5 and beyond, acceptance or rejection of the offer must be confirmed online within the following timeframe:\n  * **From the time of offer to 5 PM the following day**\n  * *(Note: In the case of a waitlist, an additional 12 hours will be provided)*"
+  },
+  {
+   "q": "How many hours of additional time is provided in the case of a waitlist for offer acceptance?",
+   "keywords": [
+    "waitlist",
+    "additional",
+    "hours",
+    "offer",
+    "acceptance"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Interviews section):\n\n* An additional **12 hours** will be provided in the case of a waitlist."
+  },
+  {
+   "q": "Within how many days must the company be intimated of an offer acceptance?",
+   "keywords": [
+    "intimated",
+    "company",
+    "offer",
+    "acceptance",
+    "days"
+   ],
+   "a": "According to the **Student Guidelines and Policies - Placements 2025-26** (Section: Offer-Management and Policies > Offer Acceptance):\n\n* The company shall be intimated of the offer acceptance within **three days** of the release of the offer."
+  },
+  {
+   "q": "What is the time window to accept or reject a closed PPO?",
+   "keywords": [
+    "closed",
+    "ppo",
+    "accept",
+    "reject",
+    "hours"
+   ],
+   "a": "According to the Student Guidelines & Policies (Pre-Placement Offer Policy):\n\n* A **closed PPO** must be accepted or rejected within **72 hours**."
+  },
+  {
+   "q": "What is the duration cap strictly placed on each interview round?",
+   "keywords": [
+    "duration",
+    "cap",
+    "interview",
+    "round",
+    "hour"
+   ],
+   "a": "According to the Student Guidelines and Policies - Placements 2025-26 (Section: Interviews - General Rules):\n\n* **Each round is strictly capped at 1 hour.** Companies are not allowed to engage in holding back candidates against their will, pressurizing candidates, or negotiating with them about the offer."
+  },
+  {
+   "q": "When does Phase 2 of the placements start and until when does it continue?",
+   "keywords": [
+    "phase",
+    "start",
+    "continue",
+    "april",
+    "placements"
+   ],
+   "a": "According to the Student Guidelines and Policies - Placements (Section: Timeline):\n\n* Phase 2 of the placements starts right after Phase 1 and continues until **April**."
+  },
+  {
+   "q": "During which months do placement tests occur for phase 1 companies?",
+   "keywords": [
+    "tests",
+    "occur",
+    "phase",
+    "september",
+    "november"
+   ],
+   "a": "According to the **Student Guidelines & Policies - Placements 2025-26** (Section: *Applying to Companies*, Section: *Timeline (Tentative)*):\n\n* Placement tests for Phase 1 companies happen from the **second week of September to the end of November**."
+  },
+  {
+   "q": "What is the exact registration fee for BTech and Dual Degree students in the 2025-26 placement season?",
+   "keywords": [
+    "registration",
+    "fee",
+    "btech",
+    "dual",
+    "degree",
+    "rupees"
+   ],
+   "a": "According to the Student Guidelines & Policies - Placements 2025-26 (Registration section):\n\n* The registration fee for BTech and Dual Degree (**21 and 22 batch**) students is **₹2200** (inclusive of GST)."
+  },
+  {
+   "q": "What is the registration fee for MA, MSc, MTech, and MBA students for placements?",
+   "keywords": [
+    "registration",
+    "fee",
+    "students",
+    "rupees",
+    "batch"
+   ],
+   "a": "According to the Student Guidelines & Policies (Section: Registration):\n\nThe registration fee for MA, MSc, MTech, and MBA students (23 batch onwards) is **₹500** (inclusive of GST)."
+  },
+  {
+   "q": "Should I include my phone number or email address on my placement resume?",
+   "keywords": [
+    "resume",
+    "contact",
+    "phone",
+    "email",
+    "address",
+    "details"
+   ],
+   "a": "According to the Student Resume Guidelines (General Information Section):\n\n* **Contact information, including, but not limited to, mobile number, address, and email address, should NOT be mentioned in a resume.**\n* Only your name and roll number should be present on an A4 resume. \n\nAdditionally, the Checkpoints & FAQs section reminds you: **\"If you have mentioned your hostel, room number, Email ID or phone number anywhere in the resume, remove it.\"**"
+  },
+  {
+   "q": "Can I put my department rank or branch rank on my resume?",
+   "keywords": [
+    "resume",
+    "branch",
+    "department",
+    "rank",
+    "scholastic",
+    "achievements"
+   ],
+   "a": "According to the **Student Resume Guidelines - Placements 2025-26** (under *Scholastic Achievements*):\n\n* Students are allowed to mention their Department/Branch Ranks on their resumes **only if they are in the Top 5**. \n* The department-wise list will be shared with the Department Teams. \n* Students are also free to mention their academic awards, GPA of a particular semester, year, or course."
+  },
+  {
+   "q": "What proof do I need to provide for an ongoing internship or work experience?",
+   "keywords": [
+    "resume",
+    "ongoing",
+    "internships",
+    "experience",
+    "proof",
+    "stipend"
+   ],
+   "a": "According to the Student Resume Guidelines - Placements 2025-26 (Professional Experience Section):\n\nFor any ongoing internships, only these combinations of proofs will be accepted:\n* Offer letter + Acknowledgement Mail from the company stating that the internship is ongoing.\n* Offer letter + Stipend payment details with company name.\n* For Research Internships, a letter from the professor indicating the project’s title along with the start date and the statement that it is ongoing is sufficient."
+  },
+  {
+   "q": "How should I format a course project on my resume so it is recognized correctly?",
+   "keywords": [
+    "resume",
+    "course",
+    "projects",
+    "format",
+    "term",
+    "proof"
+   ],
+   "a": "According to the Student Resume Guidelines - Placements 2025-26 (Checkpoints & FAQs):\n\n* If you wish to mention a course project in your resume, you must include the exact term **[course project]**.\n* You are free to mention the name of the course or its code, but it must be clear that it is a course project rather than a professor-based project. \n* Additionally, the course name or course number must be mentioned in the master resume and be present in your official Institute grade sheet, and the project description must match the course content (Student Resume Guidelines - Placements 2025-26, Projects Section)."
+  },
+  {
+   "q": "What documentation is accepted as proof for a minor specialization on the resume?",
+   "keywords": [
+    "resume",
+    "minor",
+    "courses",
+    "gradecard",
+    "proof",
+    "undertaking"
+   ],
+   "a": "According to the **Student Resume Guidelines - Placements 2025-26** (Minors section):\n\n* **For the institute’s approved minor list:** The Student’s grade card or the Consent of the Tutor (CoT) from the professor taking the course will be accepted as proof.\n* **For courses not on the minor list or for an NPTEL course:** An email from the department HoD (of the department offering the minor) approving the same is necessary."
+  },
+  {
+   "q": "Do I need to attach proof for skills and hobbies mentioned in my resume?",
+   "keywords": [
+    "resume",
+    "skills",
+    "hobbies",
+    "proof",
+    "verification"
+   ],
+   "a": "According to the Student Resume Guidelines - Placements 2025-26 (Section \"Skills & Hobbies\"):\n\n* **No proof is required** for the skills or hobbies mentioned in your resume."
+  },
+  {
+   "q": "What are the allowed proofs if I want to list an entrepreneurial startup or co-founding activity?",
+   "keywords": [
+    "resume",
+    "entrepreneurial",
+    "startup",
+    "founding",
+    "proof",
+    "incubating"
+   ],
+   "a": "According to the **Student Resume Guidelines - Placements 2025-26 (Section: Entrepreneurial Activities)**, any claim made in your resume regarding founding or co-founding a startup must be backed up with sufficient proof, which includes (but is not limited to):\n\n* An **acknowledgement of the startup’s existence** as well as your claimed position in the company by the incubating organization or funding organization.\n* If the startup is a **Registered Entity**, any document proving that fact.\n* *(Note: If a startup is not a registered entity, it is mandatory to mention the same in the master and the fixed resumes.)*"
+  },
+  {
+   "q": "How should I calculate my 12th standard percentage if my board gave a combined 11th and 12th marksheet?",
+   "keywords": [
+    "resume",
+    "percentage",
+    "twelfth",
+    "board",
+    "marksheet",
+    "combined"
+   ],
+   "a": "According to the Student Resume Guidelines - Placements 2025-26 (Checkpoints & FAQs) and Placement Resume Guidelines 2024-25 (Checkpoints & FAQs):\n\n* If your higher education board gives you a combined mark sheet for classes 11 and 12, you must sum up your **12th standard marks separately** and only mention that as your 12th percentage. \n* Do not mention the intermediate percentage (11th + 12th combined) as your 12th percentage. \n* If you wish to state the combined score, you are free to call it **\"11th + 12th percentage\"** or **\"intermediate percentage\"**."
+  },
+  {
+   "q": "What steps should I take if I want to modify my master resume after it has already been verified?",
+   "keywords": [
+    "resume",
+    "master",
+    "modify",
+    "verification",
+    "changes",
+    "requests"
+   ],
+   "a": "According to the Student Resume Guidelines - Placements 2025-26 (Checkpoints & FAQs), if you want to modify your master resume after verification to add details about courses, projects, or conferences completed after internship registration, you should take the following steps:\n\n1. **Collect and Upload Proofs:** Collect all the proofs related to the topics you want to add and upload them to the same Google Drive folder shared during the first verification.\n2. **Send an Email Request:** Send an email to your respective department core mentioning the list of changes you wish to make in the master resume and request them to verify it.\n3. **Upload a New F-Resume:** Upload a new Fixed (F) resume incorporating these new details.\n\n**Important points to remember:**\n* You **cannot** make any changes to the parts of the master resume that were already verified; you can only add new details.\n* These changes must be incorporated into the new Fixed (F) resume. No changes are allowed in Fixed resumes that were already uploaded earlier.\n* Students can upload only up to **5 Fixed resumes**. If you raise multiple requests, you may run out of fixed resumes to upload, as a fixed resume cannot be deleted after being verified."
+  },
+  {
+   "q": "How do I ensure that the Google Drive folder containing my resume proofs has proper view access for the verification team?",
+   "keywords": [
+    "resume",
+    "proofs",
+    "google",
+    "drive",
+    "access",
+    "permissions"
+   ],
+   "a": "According to the **Student Resume Guidelines - Placements 2025-26** (Checkpoints & FAQs - \"Have you provided view access for proofs?\"):\n\nTo ensure proper view access for your proof links:\n* Test opening the links using both your personal and smail email IDs to verify settings.\n* If a link doesn't open, go to your proofs folder, select all items (`Ctrl + A`), right-click, select **Share**, and use the dropdown to set access to **\"anyone with the link can view\"**.\n* **Avoid restricting access to smail IDs only** (an option that may pop up if stored on your smail Google Drive); make sure to allow view access to **all email IDs**."
   }
  ]
 }

@@ -49,6 +49,29 @@ database to host, pay for, or maintain. The README documents the upgrade path
 
 ---
 
+## 1b. Reliability & scale architecture
+
+Four layers stand between a student and a failed answer:
+
+| Layer | Cost per question | Capacity |
+|---|---|---|
+| **Instant FAQ** — `faq.json` matched in the browser | ₹0, no network at all | unlimited |
+| **Server cache** — identical question within 15 min | ₹0, no AI call | ~unlimited (5 ms) |
+| **Provider 1: Gemini** — full documents in context | free tier | request-capped |
+| **Provider 2: Groq** — relevant excerpts only | free tier (separate quota) | token-capped |
+
+**Automatic failover:** if a provider can't answer for *any* reason — quota exhausted,
+outage, revoked key, retired model — the next one silently takes over. Verified with a
+real broken provider: Gemini returned 404, the bot logged `Falling over from gemini to
+llama`, and Groq answered correctly in 1.2 s. Failover stops once text has started
+streaming, so a student never sees two half-answers spliced together.
+
+**Keyword retrieval:** Groq's free tier allows 12,000 tokens/minute but the full
+knowledge base is ~43,000 tokens — it could never answer with every document attached.
+So for token-capped providers the bot sends only the sections relevant to the question,
+selected by keyword match. No vector database, no embeddings, no extra service.
+Verified that citations stay accurate with excerpts only.
+
 ## 2. The cost question — and how it was solved
 
 **Finding:** hosting is genuinely free (Vercel Hobby tier), but Anthropic's Claude
