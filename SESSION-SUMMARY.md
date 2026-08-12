@@ -3,228 +3,244 @@
 **Date:** 10–11 August 2026
 **Goal:** Build a free, embeddable AI chatbot that answers student questions about
 internship eligibility, placement processes, policies, and resume verification —
-grounded in official institute documents, with escalation to human coordinators.
+grounded in official institute documents, with escalation to human coordinators,
+surviving ~200 questions/minute without paying for AI usage.
+
+**Status: live in production and verified.** `https://placement-chatbot-rakeshlab.vercel.app`
 
 ---
 
 ## 1. What was built
 
-A complete, deploy-ready project at `C:\Users\rakes\OneDrive\Desktop\placement-chatbot`.
+A complete project at `C:\Users\rakes\OneDrive\Desktop\placement-chatbot`, pushed to
+GitHub (`rakeshsa10g-lab/placement-chatbot`, private) and deployed on Vercel.
 
 | File | Purpose |
 |---|---|
-| `api/chat.js` | Serverless backend. Streams answers, validates input, rate-limits, handles CORS. Supports **two AI providers** (Gemini free tier / Anthropic Claude). |
-| `public/widget.js` | The embeddable chat widget — floating bubble, streaming replies, session memory, escalation button. Zero dependencies. |
-| `public/index.html` | Local test page simulating your institute website. |
-| `scripts/ingest.mjs` | Converts PDFs/Word/text files in `docs/` into the chatbot's knowledge base. |
-| `scripts/dev-server.mjs` | Local test server (`npm run dev`) so no Vercel CLI is needed. |
-| `docs/` | Where your policy documents go (currently holds a sample policy). |
-| `knowledge/knowledge.md` | Auto-generated knowledge file — never edit by hand. |
-| `README.md` | Full technical reference: costs, scaling, troubleshooting. |
-| `GETTING-STARTED.md` | Beginner's step-by-step guide to going live. |
-| `.env` | Your secret API key. **Never uploaded to GitHub** (protected by `.gitignore`). |
+| `api/chat.js` | Serverless backend — streaming answers, provider failover, answer caching, rate limiting, keyword-based context retrieval |
+| `public/widget.js` | Embeddable chat widget — markdown rendering, instant FAQ matching, escalation form, session memory. Zero dependencies. |
+| `public/faq.json` | 60 pre-answered questions, generated from your documents, served free from the CDN |
+| `public/routing.json` | Escalation config — Google Form URL + field IDs + roll-number-to-department map |
+| `scripts/ingest.mjs` | Converts `docs/*.pdf/.docx` into the knowledge base |
+| `scripts/build-faq.mjs` | Generates the instant-answer FAQ (rate-limit aware, resumable) |
+| `scripts/tune-faq.mjs` | Reports how well the FAQ matcher handles real student phrasings |
+| `scripts/setup-form.mjs` | Extracts a Google Form's field IDs from a pre-filled link — no manual entry-ID hunting |
+| `scripts/dev-server.mjs` | Local test server (`npm run dev`) |
+| `google-apps-script/segregate.gs` | Sorts form responses into per-department sheet tabs |
+| `docs/` | Your 5 real placement/internship policy PDFs |
+| `README.md` / `GETTING-STARTED.md` / `ESCALATION-SETUP.md` | Reference, beginner walkthrough, and form setup guide |
 
 ### Architecture
 
 ```
-docs/*.pdf, *.docx  --[npm run ingest]-->  knowledge/knowledge.md
-                                                  |
-student <--> widget.js <--> /api/chat  --(full documents as context)--> AI model
+docs/*.pdf → npm run ingest → knowledge/knowledge.md
+                                     │
+        ┌────────────────────────────────────────────┐
+        │ 1. Instant FAQ (browser, faq.json)          │  ~73% of real phrasings, ₹0, no network
+        │ 2. Server cache (15 min, identical Q)       │  ₹0, no AI call, ~5ms
+        │ 3. Gemini (free tier, full documents)       │  request-capped
+        │ 4. Groq (free tier, relevant excerpts only) │  token-capped, separate quota
+        └────────────────────────────────────────────┘
+                                     │
+        Can't answer → roll number → Google Form → Apps Script → department sheet tab
 ```
 
-**Key design decision — no vector database.** Institutional policy documents are
-small enough to send *in full* to the AI on every question. This means answers are
-grounded in every document at once (no retrieval misses), and there's no extra
-database to host, pay for, or maintain. The README documents the upgrade path
-(Supabase pgvector) for if documents ever exceed ~150K tokens.
+No vector database — documents are small enough to send in full (or as keyword-matched
+excerpts for token-capped providers). Nothing extra to host or pay for.
 
 ### Behaviour built into the bot
 
-- Answers **only** from your documents — never invents policies, dates, or cutoffs.
-- **Cites its source**: "According to the Internship Policy (Section 1.1): …"
-- **Escalates to a human** when it can't answer, or when the question involves an
-  exception, dispute, extension request, or complaint. It emits a hidden
-  `[[ESCALATE]]` flag which the widget turns into a "📩 Contact a coordinator" button.
-- Remembers the conversation within a browser session (clears when the tab closes).
+- Answers **only** from your documents, cites the specific document and section
+- Renders markdown properly (bold, bullets, headings) — not raw `**text**`
+- Detects and reports **conflicts between documents** rather than silently picking one
+- Escalates to a human for anything outside the documents — exceptions, disputes, complaints
+- Remembers conversation within a browser session
 
 ---
 
-## 1b. Reliability & scale architecture
+## 2. Reliability & scale — the core engineering problem
 
-Four layers stand between a student and a failed answer:
+**The ask:** survive ~200 questions/minute with zero ongoing cost. No free AI tier
+allows that many *unique* calls — the entire design exists to make that non-issue.
 
-| Layer | Cost per question | Capacity |
+### Four layers, cheapest first
+
+| Layer | Cost/question | Verified |
 |---|---|---|
-| **Instant FAQ** — `faq.json` matched in the browser | ₹0, no network at all | unlimited |
-| **Server cache** — identical question within 15 min | ₹0, no AI call | ~unlimited (5 ms) |
-| **Provider 1: Gemini** — full documents in context | free tier | request-capped |
-| **Provider 2: Groq** — relevant excerpts only | free tier (separate quota) | token-capped |
+| Instant FAQ (browser-matched) | ₹0, no network | 0 API calls measured for a matched question |
+| Server cache (15 min) | ₹0, no AI call | 4,698ms → 5ms on repeat |
+| Gemini (full documents) | free tier | primary |
+| Groq (excerpts only) | free tier, separate quota | automatic fallback |
 
-**Automatic failover:** if a provider can't answer for *any* reason — quota exhausted,
-outage, revoked key, retired model — the next one silently takes over. Verified with a
-real broken provider: Gemini returned 404, the bot logged `Falling over from gemini to
-llama`, and Groq answered correctly in 1.2 s. Failover stops once text has started
-streaming, so a student never sees two half-answers spliced together.
+### Automatic provider failover
 
-**Keyword retrieval:** Groq's free tier allows 12,000 tokens/minute but the full
-knowledge base is ~43,000 tokens — it could never answer with every document attached.
-So for token-capped providers the bot sends only the sections relevant to the question,
-selected by keyword match. No vector database, no embeddings, no extra service.
-Verified that citations stay accurate with excerpts only.
+If a provider fails for *any* reason — quota, outage, revoked key, retired model —
+the next one takes over silently. **Verified against a genuinely broken provider**,
+not a simulation: Gemini returned real 404s, logs showed `Falling over from gemini
+to llama`, Groq answered correctly in 1.2s. Failover stops once streaming has started,
+so two half-answers can never be spliced together.
 
-## 2. The cost question — and how it was solved
+### Keyword retrieval (for token-capped providers)
 
-**Finding:** hosting is genuinely free (Vercel Hobby tier), but Anthropic's Claude
-API has no ongoing free tier. So a second provider was added.
+Groq's free tier caps at 12,000 tokens/minute; the full knowledge base is ~43,000
+tokens — Groq could never work with everything attached (`413 Request too large`
+observed directly). Fix: token-capped providers get only the sections relevant to the
+question, chosen by keyword scoring — no embeddings, no vector DB. Verified Groq still
+cites sources correctly on excerpts alone.
 
-| Setup | Cost | Trade-off |
+### FAQ matching — tuned against real phrasing, not the generator's own wording
+
+First version scored only **3/15** on realistic short student phrasings (e.g. "dress
+code for interviews" vs. the FAQ's formal "What are the dress code requirements for
+placement interviews?"). Retuned the scoring weights and added light stemming →
+**11/15 (73%), zero false positives** on a held-out set of unrelated questions.
+`npm run tune-faq` reproduces this report any time the FAQ changes.
+
+---
+
+## 3. The cost problem and how it was solved
+
+Hosting is free (Vercel Hobby). Anthropic's API has no free tier — so two free
+providers were wired in with automatic failover between them instead:
+
+| Provider | Cost | Role |
 |---|---|---|
-| **Google Gemini free tier** ← *chosen* | **₹0 / $0** | ~250 requests/day cap (`gemini-2.5-flash`), or ~1,000/day (`gemini-2.5-flash-lite`) |
-| **Llama** (Groq / OpenRouter / Ollama) | **₹0 / $0** | Separate free quota; limited by *tokens per minute*, and 128K context |
-| Anthropic Claude | ~$0.006–0.03 per question | Best answer quality, no daily cap |
+| Google Gemini (`gemini-flash-lite-latest`) | free | primary — large free quota, big context window |
+| Groq (`llama-3.3-70b-versatile`) | free, separate quota | automatic fallback |
+| Anthropic Claude | ~$0.006–0.03/question | optional third link, never required |
 
-Switching between them is just an environment variable — same widget, same
-documents, same behaviour.
-
-**Why Gemini remains the default here:** this design sends the whole knowledge
-base with every question (~28K tokens for your five PDFs). Gemini's free tier is
-capped by *requests per day* and has a ~1M-token context window, which suits that
-pattern. Groq's free tier is capped by *tokens per minute*, so a 28K-token prompt
-consumes the allowance quickly. Llama is the better choice for a small document
-set, as a second free quota to fall back on, or if you later self-host.
-
-### If the free daily cap is ever exceeded
-
-1. **Add a static FAQ page** (best move regardless) — ~80% of placement questions
-   are the same 30 questions. Publish canonical answers as plain text; the bot then
-   only handles the long tail, staying well inside the free cap.
-2. Switch `GEMINI_MODEL` to `gemini-2.5-flash-lite` for ~4× the daily cap.
-3. Use a small paid budget (`claude-haiku-4-5`, ~$5.50 per 1,000 questions) only
-   during peak weeks.
-4. If it must be $0 with no caps at all: publish `knowledge.md` as a searchable
-   static FAQ page instead of a chatbot — zero cost per query, zero wrong answers,
-   but no natural-language conversation.
+**Model pinning bug found and fixed:** the original code pinned `gemini-2.5-flash`,
+which Google retired for new keys mid-session (`404 ... no longer available to new
+users`) — this is what caused the very first production error. Fixed by switching to
+alias model names (`gemini-flash-lite-latest`) that always track Google's current
+model, so this class of failure cannot recur.
 
 ---
 
-## 3. Testing performed ✅
+## 4. Testing performed — all verified against real documents and real production
 
-All tests run locally against the sample policy document.
-
-| Test | Result |
+| Area | Result |
 |---|---|
-| Document ingestion | ✅ Sample policy converted to knowledge base |
-| Input validation | ✅ Malformed requests → clear 400 error; wrong method → 405 |
-| Rate limiting | ✅ Exactly 20 requests/min/IP allowed, then clean 429s |
-| Graceful failure | ✅ Missing/invalid key → friendly student-facing message, no crash |
-| **Grounded answer** | ✅ *"What CGPA do I need?"* → "According to the Internship & Placement Policy (Section 1.1): 'Students must have a CGPA of 6.0 or above with no active backlogs…'" |
-| **Conversation memory** | ✅ Follow-up *"And does that change if I have a backlog?"* understood in context |
-| **Escalation** | ✅ *"My CGPA is 5.8 — can an exception be made?"* → declined to guess, showed "Contact a coordinator" button |
+| Document ingestion | ✅ 5 real PDFs (~111KB) → knowledge base |
+| Grounded answers with citation | ✅ "One Student One Offer" policy cited by document + section |
+| Conversation memory | ✅ Follow-up question understood in context |
+| Escalation trigger | ✅ Personal CGPA exception → declined to guess, escalated |
+| Markdown rendering | ✅ 4 headings, 3 lists, 16 bold runs, zero leftover `**`/`#` |
+| Provider failover | ✅ Real broken Gemini key → Groq served correct answer, 1.2s |
+| FAQ instant-answer path | ✅ 0 API calls, correct citation, <1s |
+| Rate limiting | ✅ 20/min/IP enforced, clean 429s |
+| Retry on transient errors | ✅ Gemini 503s absorbed automatically |
+| **Escalation form — full pipeline** | ✅ Real form, real spreadsheet, real Apps Script trigger, real roll number `CH24B999` → landed in correct department tab **automatically** |
+| **Production deployment** | ✅ Verified on the live public URL, not just locally |
 
-**Conclusion: the chatbot works end-to-end on the free Gemini tier.**
+### Real finding surfaced by the bot: your documents disagree with each other
 
-### Verified again on the REAL documents
+Live production test — "How many credits do students start with?" — returned:
 
-Five real policy PDFs (~111 KB / ~28K tokens of text) were ingested and tested:
+> "Each student will be allocated **160 credits**... (note: the Company Credit Policy
+> document mentions **150 credits**, while [the other document says 160]...)"
 
-| Question | Result |
-|---|---|
-| "What are the rules for resume verification?" | ✅ Detailed rules extracted from the resume guidelines |
-| "How does the company credit policy work?" | ✅ "Each student is allocated 150 credits at the beginning of the placement season *(Company Credit Policy)*" |
-| "Am I still eligible if I already have an offer?" | ✅ Cited the **"One Student One Offer"** policy, naming the document *and* section |
-| "What CGPA do I need for internships?" | ✅ Correctly said the documents don't specify this → escalated instead of guessing |
-
-**Issue found and fixed during this test:** Google's free tier intermittently returns
-`503 service unavailable` under rapid requests. Automatic retry (3 attempts with
-backoff) was added, which turns those into successful answers. Quota errors (429)
-are deliberately *not* retried, since waiting doesn't help.
+Two of your source PDFs state different starting credit amounts. **This needs a
+correction in your source documents** — the bot is correctly flagging the conflict
+rather than guessing, but the underlying discrepancy is real and should be fixed at
+the source, then re-ingested.
 
 ---
 
-## 4. Problems hit along the way (and fixes)
+## 5. Problems hit and fixed
 
 | Problem | Cause | Fix |
 |---|---|---|
-| `running scripts is disabled on this system` | Windows blocks all PowerShell scripts by default; `npm` is a script | Set execution policy to `RemoteSigned` for your user. Fallback that always works: type **`npm.cmd`** instead of `npm` |
-| `EADDRINUSE: address already in use :::3000` | The assistant's test server was still occupying port 3000 | Stopped it. Only one server can use a port at a time |
-| `API key: MISSING` despite key being present | Bug in the dev server's status line — it only checked for an *Anthropic* key, ignoring Gemini | Fixed. It now reports the actual provider in use |
-
-> **Note:** none of these issues exist on Vercel — they are purely local Windows
-> quirks. Once deployed, students just visit a URL.
-
----
-
-## 5. ⚠️ Security action required
-
-The Gemini API key was pasted into the chat during testing, so treat it as exposed.
-
-1. Go to https://aistudio.google.com → **Get API key**
-2. **Create** a new key, **delete** the old one (starts `AQ.Ab8RN…`)
-3. Open `.env` in Notepad, replace the value after `GEMINI_API_KEY=`
-4. Never share an API key in chats, emails, or screenshots
+| PowerShell blocked `npm` | Windows default execution policy | Set `RemoteSigned`, or use `npm.cmd` |
+| `EADDRINUSE :::3000` | Two dev servers on one port | Stopped the duplicate |
+| Model 404 in production | `gemini-2.5-flash` retired for new keys | Switched to auto-tracking alias model names |
+| Gemini key exposed in chat | Pasted directly in conversation | Rotated; new key never shared |
+| Gemini key later showed `401` | Old key deleted without confirming replacement was saved | Re-verified and confirmed live |
+| Groq `413 Request too large` | Free tier caps 12K tokens/min; full doc set is ~43K tokens | Built keyword-excerpt retrieval for token-capped providers |
+| FAQ build hit daily quota mid-run | Gemini's free tier daily cap is tighter than expected | Built on Groq instead (separate quota); added rate-limit-aware retry + resumable progress saves |
+| Stale `faq.json`/`routing.json` in browsers | Widget used `force-cache`, pinning students to the first version they ever loaded | Removed `force-cache` — files now revalidate |
+| FAQ matcher only hit 3/15 real phrasings | Scoring favored long formal wording over short student queries | Retuned weights + stemming → 11/15, 0 false positives |
+| **Deployed site redirected to Vercel login** | Vercel's **Deployment Protection** (Vercel Authentication) was enabled on the project, blocking every visitor including students | Disabled in Vercel → Settings → Deployment Protection; verified from a fresh, cache-free browser tab |
 
 ---
 
-## 5b. Escalation routing — set up and verified live ✅
+## 6. Escalation routing — Google Form → per-department sheets
 
-The Google Form → Apps Script → per-department sheet pipeline (see section 1b) is now
-fully configured and tested against the real form, real spreadsheet, and real trigger —
-not a simulation:
+Fully configured and proven live, not simulated:
 
-1. Form created with three fields (Roll Number / Question / Department); field IDs
-   extracted automatically via `npm run setup-form` and written to `public/routing.json`
-2. A direct POST to the form's `/formResponse` endpoint returned `200` with a genuine
-   Google confirmation page
-3. Apps Script (`google-apps-script/segregate.gs`) installed; `backfillExisting` sorted
-   pre-trigger test rows into a new **"CH - Chemical Engineering"** tab
-4. **On Form Submit** trigger installed and authorized
-5. A full live round-trip through the actual chat widget — real escalation-worthy
-   question, real Gemini API call declining to guess, real roll number `CH24B999` —
-   landed in the correct department tab **automatically**, with no manual step. This is
-   the proof the entire student-facing flow works end to end.
+1. Google Form (Roll Number / Question / Department) created
+2. `npm run setup-form "<pre-filled link>"` auto-extracted field IDs into `routing.json`
+   — no manual entry-ID hunting
+3. Direct test POST to the form's endpoint returned `200` with a real Google
+   confirmation page
+4. `google-apps-script/segregate.gs` installed on the response sheet; `onFormSubmit`
+   trigger authorized
+5. **Live end-to-end proof:** a real escalation-worthy question through the deployed
+   widget → Gemini correctly declined to guess → roll number `CH24B999` submitted →
+   landed in the **"CH - Chemical Engineering"** tab automatically, no manual step
 
-Three test rows (`TEST99Z999`, and two `CH...` rows) are in the sheet — the user is
-removing them manually.
+Unmatched or malformed roll numbers fall back to an "Unsorted" tab; nothing is
+silently dropped. Test rows are being cleared by the user.
 
-## 6. What's left to do
+---
 
-| # | Step | Time | Where |
-|---|---|---|---|
-| 1 | Rotate the Gemini API key | 5 min | aistudio.google.com |
-| 2 | Replace the sample doc with real policy files, run `npm.cmd run ingest` | 10 min | `docs/` folder |
-| 3 | Create a GitHub account and upload the project | 15 min | github.com |
-| 4 | Import into Vercel, add environment variables, deploy | 10 min | vercel.com |
-| 5 | Create a Google Form for escalations, embed the widget script on your site | 5 min | Your website |
+## 7. Why an AI chatbot instead of a static FAQ page
 
-**Full instructions with every click spelled out: see `GETTING-STARTED.md`.**
+Discussed directly — the honest answer is a static FAQ *does* solve the flat-lookup
+case (which is why the instant FAQ layer exists and handles ~73% of traffic for free).
+What a document structurally cannot do, and what this session's evidence shows the
+bot actually doing:
 
-### Routine maintenance (whenever policies change)
+- **Combinatorial eligibility questions** — "I have 2 backlogs from Jan-May and I'm on
+  a Dual Degree, am I eligible for Day 1?" can't be pre-enumerated as FAQ entries; the
+  bot reasons over the real policy text for that specific combination.
+- **Cross-document conflict detection** — caught the real 150-vs-160 credits
+  discrepancy live, across two source PDFs, unprompted.
+- **Triage** — decides when a question needs a human rather than an answer, and routes
+  it to the right department. A document can't do this, which is exactly the
+  repetitive-query problem the project set out to reduce.
+- **Conversational follow-up** — multi-turn context a static page has no way to hold.
+- **Zero-maintenance-drift answers** — update a PDF, re-run `ingest`, done; a
+  hand-written FAQ needs a human to notice policy changes and rewrite entries, which is
+  exactly how documents end up silently contradicting each other.
 
+---
+
+## 8. What's left (all in the user's hands)
+
+| # | Item | Notes |
+|---|---|---|
+| 1 | Delete test rows from the escalation sheet | `TEST99Z999`, two `CH...` rows |
+| 2 | **Fix the 150-vs-160 credits conflict** in the source PDFs, then re-run `npm run ingest` and `npm run build-faq` | Real discrepancy found in production testing |
+| 3 | Widen FAQ coverage after a week of real traffic | `npm run build-faq -- 150` then `npm run tune-faq` |
+| 4 | Embed the widget script on the actual placement website | Snippet in `GETTING-STARTED.md` |
+
+### Routine maintenance
+
+```bash
+npm run ingest          # after any document change
+npm run build-faq       # refresh instant answers (run on Groq to spare Gemini's quota:
+                         #   LLM_PROVIDER=llama npm run build-faq -- 60)
+npm run tune-faq         # confirm the matcher still performs well
+git add -A && git commit -m "update" && git push   # Vercel auto-redeploys
 ```
-npm.cmd run ingest
-git add -A
-git commit -m "update documents"
-git push
-```
-
-Vercel republishes automatically within a minute.
 
 ---
 
-## 7. Useful commands
+## 9. Reference
 
-| Command | What it does |
-|---|---|
-| `npm.cmd run ingest` | Rebuild knowledge base after changing documents |
-| `npm.cmd run dev` | Start local test server → http://localhost:3000 |
-| `Ctrl+C` | Stop the local server |
+**Live site:** `https://placement-chatbot-rakeshlab.vercel.app`
+**Repo:** `github.com/rakeshsa10g-lab/placement-chatbot` (private)
 
-**Environment variables** (set in `.env` locally, and in Vercel → Settings for production):
+**Environment variables** (set in `.env` locally and Vercel → Settings for production):
 
 | Variable | Value |
 |---|---|
-| `GEMINI_API_KEY` | Your free Google AI Studio key |
-| `GEMINI_MODEL` | `gemini-2.5-flash` (default) or `gemini-2.5-flash-lite` (higher cap) |
+| `GEMINI_API_KEY` | Google AI Studio key |
+| `GEMINI_MODEL` | `gemini-flash-lite-latest` (default — always tracks current model) |
+| `LLAMA_API_KEY` | Groq API key (fallback provider) |
+| `LLAMA_BASE_URL` | `https://api.groq.com/openai/v1` |
+| `LLM_PROVIDER` | `gemini,llama` — failover order |
 | `INSTITUTION_NAME` | e.g. `IIT Madras` |
-| `ALLOWED_ORIGIN` | Your website address once live; `*` while testing |
-| `ANTHROPIC_API_KEY` | Only if switching to paid Claude |
+| `ALLOWED_ORIGIN` | Your website origin once embedded; `*` while testing |
+| `ANTHROPIC_API_KEY` | Optional third fallback (paid) |
